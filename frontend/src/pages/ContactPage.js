@@ -122,8 +122,8 @@ export const ContactPage = () => {
                   <div>
                     <h3 className="font-manrope font-bold text-gray-900 mb-1">Address</h3>
                     <p className="font-manrope text-gray-600">
-                      123 Auto Street, Sector 18<br />
-                      Delhi NCR, India 110001
+                      Plot number 1528, Sector - 45<br />
+                      Gurgaon, India
                     </p>
                   </div>
                 </div>
@@ -134,8 +134,7 @@ export const ContactPage = () => {
                   </div>
                   <div>
                     <h3 className="font-manrope font-bold text-gray-900 mb-1">Phone</h3>
-                    <p className="font-manrope text-gray-600">+91 98765 43210</p>
-                    <p className="font-manrope text-gray-600">+91 98765 43211</p>
+                    <p className="font-manrope text-gray-600">8683-996-996</p>
                   </div>
                 </div>
 
@@ -145,8 +144,7 @@ export const ContactPage = () => {
                   </div>
                   <div>
                     <h3 className="font-manrope font-bold text-gray-900 mb-1">Email</h3>
-                    <p className="font-manrope text-gray-600">info@carloop.com</p>
-                    <p className="font-manrope text-gray-600">sales@carloop.com</p>
+                    <p className="font-manrope text-gray-600">Kathuria.gavish94@gmail.com</p>
                   </div>
                 </div>
 
