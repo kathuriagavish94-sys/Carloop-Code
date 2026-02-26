@@ -99,6 +99,7 @@ export const AdminDashboard = () => {
       year: car.year,
       price: car.price,
       image: car.image,
+      gallery: car.gallery?.join('|') || '',
       km_driven: car.km_driven,
       fuel_type: car.fuel_type,
       transmission: car.transmission,
