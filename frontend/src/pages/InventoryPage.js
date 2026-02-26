@@ -71,6 +71,32 @@ export const InventoryPage = () => {
     setFilteredCars(filtered);
   };
 
+  const handleCallbackRequest = (car) => {
+    setSelectedCar(car);
+    setShowCallbackModal(true);
+  };
+
+  const handleSubmitCallback = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      await axios.post(`${API}/callback-requests`, {
+        ...callbackForm,
+        car_id: selectedCar?.id,
+      });
+      toast.success('Callback request submitted! We will call you back soon.');
+      setShowCallbackModal(false);
+      setCallbackForm({ name: '', phone: '' });
+      setSelectedCar(null);
+    } catch (error) {
+      console.error('Error submitting callback:', error);
+      toast.error('Failed to submit request. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-ceramic py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
