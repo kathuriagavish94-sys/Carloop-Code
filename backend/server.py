@@ -93,11 +93,15 @@ class CarCreate(BaseModel):
     year: int
     price: float
     image: str
+    gallery: Optional[List[str]] = []
     km_driven: int
     fuel_type: str
     transmission: str
+    owners: Optional[int] = 1
+    rto: Optional[str] = "DL"
     condition: Optional[str] = "Excellent"
     features: Optional[List[str]] = []
+    specifications: Optional[dict] = {}
     is_featured: bool = False
 
 class CarUpdate(BaseModel):
@@ -106,11 +110,15 @@ class CarUpdate(BaseModel):
     year: Optional[int] = None
     price: Optional[float] = None
     image: Optional[str] = None
+    gallery: Optional[List[str]] = None
     km_driven: Optional[int] = None
     fuel_type: Optional[str] = None
     transmission: Optional[str] = None
+    owners: Optional[int] = None
+    rto: Optional[str] = None
     condition: Optional[str] = None
     features: Optional[List[str]] = None
+    specifications: Optional[dict] = None
     is_featured: Optional[bool] = None
 
 class Enquiry(BaseModel):
