@@ -176,7 +176,7 @@ def extract_youtube_video_id(url: str) -> str:
     raise ValueError("Invalid YouTube URL")
 
 def convert_google_drive_url(url: str) -> str:
-    """Convert Google Drive share URL to direct image URL"""
+    """Convert Google Drive share URL to lh3.googleusercontent.com direct image URL"""
     import re
     if not url:
         return url
@@ -186,13 +186,13 @@ def convert_google_drive_url(url: str) -> str:
         match = re.search(r'/file/d/([a-zA-Z0-9_-]+)', url)
         if match:
             file_id = match.group(1)
-            return f"https://drive.google.com/uc?export=view&id={file_id}"
+            return f"https://lh3.googleusercontent.com/d/{file_id}"
         
         # Pattern 2: /open?id=FILE_ID
         match = re.search(r'[?&]id=([a-zA-Z0-9_-]+)', url)
         if match:
             file_id = match.group(1)
-            return f"https://drive.google.com/uc?export=view&id={file_id}"
+            return f"https://lh3.googleusercontent.com/d/{file_id}"
     
     return url
 
