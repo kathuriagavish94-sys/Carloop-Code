@@ -269,15 +269,55 @@ export const AdminDashboard = () => {
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="font-teko text-3xl font-bold text-forest uppercase">Manage Inventory</h2>
-                  <button
-                    onClick={handleAddCar}
-                    className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-[#01352a] transition-colors font-manrope font-semibold flex items-center space-x-2"
-                    data-testid="add-car-button"
-                  >
-                    <Plus className="h-5 w-5" />
-                    <span>Add Car</span>
-                  </button>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={handleDownloadTemplate}
+                      className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-manrope font-semibold"
+                      data-testid="download-template-button"
+                    >
+                      Download CSV Template
+                    </button>
+                    <label className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-[#d94d0a] transition-colors font-manrope font-semibold cursor-pointer inline-flex items-center space-x-2">
+                      <input
+                        type="file"
+                        accept=".csv"
+                        onChange={handleCsvUpload}
+                        className="hidden"
+                        disabled={uploadingCsv}
+                        data-testid="csv-upload-input"
+                      />
+                      <span>{uploadingCsv ? 'Uploading...' : 'Upload CSV'}</span>
+                    </label>
+                    <button
+                      onClick={handleAddCar}
+                      className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-[#01352a] transition-colors font-manrope font-semibold flex items-center space-x-2"
+                      data-testid="add-car-button"
+                    >
+                      <Plus className="h-5 w-5" />
+                      <span>Add Car</span>
+                    </button>
+                  </div>
                 </div>
+
+                {csvResult && (
+                  <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg" data-testid="csv-result">
+                    <h3 className="font-manrope font-bold text-green-800 mb-2">CSV Upload Results:</h3>
+                    <div className="font-manrope text-sm text-green-700">
+                      <p>✓ Added: {csvResult.added} cars</p>
+                      <p>✓ Updated: {csvResult.updated} cars</p>
+                      {csvResult.errors && csvResult.errors.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-red-700 font-semibold">Errors:</p>
+                          <ul className="list-disc list-inside text-red-600">
+                            {csvResult.errors.map((error, index) => (
+                              <li key={index}>{error}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <div className="overflow-x-auto">
                   <table className="w-full" data-testid="cars-table">
