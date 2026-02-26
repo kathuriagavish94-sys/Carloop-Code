@@ -52,16 +52,20 @@ export const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const [carsRes, enquiriesRes, testimonialsRes] = await Promise.all([
+      const [carsRes, enquiriesRes, testimonialsRes, callbacksRes] = await Promise.all([
         axios.get(`${API}/cars`),
         axios.get(`${API}/enquiries`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         axios.get(`${API}/testimonials`),
+        axios.get(`${API}/callback-requests`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
       setCars(carsRes.data);
       setEnquiries(enquiriesRes.data);
       setTestimonials(testimonialsRes.data);
+      setCallbackRequests(callbacksRes.data);
     } catch (error) {
       console.error('Error fetching data:', error);
       if (error.response?.status === 401) {
