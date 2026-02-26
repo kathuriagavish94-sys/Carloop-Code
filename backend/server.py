@@ -424,7 +424,7 @@ async def bulk_upload_cars(file: UploadFile = File(...), admin: dict = Depends(v
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error processing CSV: {str(e)}")
 
-@api_router.get("/cars/download-template")
+@api_router.get("/cars/template/download")
 async def download_csv_template():
     csv_content = """make,model,year,price,image,gallery,km_driven,fuel_type,transmission,owners,rto,condition,features,engine,power,torque,mileage,seats,body_type,color,is_featured
 Mercedes-Benz,E-Class E 220d,2021,3500000,https://images.pexels.com/photos/12070967/pexels-photo-12070967.jpeg,https://images.pexels.com/photos/12070967/pexels-photo-12070967.jpeg|https://images.unsplash.com/photo-1617531653520-bd466115490d,25000,Diesel,Automatic,1,DL3C,Excellent,"Sunroof,Leather Seats,Navigation,Rear Camera",2.0L Diesel,194 bhp,400 Nm,17.9 kmpl,5,Sedan,Black,true
