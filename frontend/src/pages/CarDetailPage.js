@@ -155,11 +155,11 @@ export const CarDetailPage = () => {
 
               <div className="space-y-4">
                 <button
-                  onClick={() => setShowEnquiryForm(!showEnquiryForm)}
+                  onClick={() => setShowCallbackForm(!showCallbackForm)}
                   className="w-full px-6 py-4 bg-primary text-white rounded-lg hover:bg-[#01352a] transition-colors font-manrope font-bold text-lg"
-                  data-testid="enquire-button"
+                  data-testid="callback-button"
                 >
-                  Enquire Now
+                  Get A Call Back
                 </button>
 
                 <div className="flex space-x-4">
