@@ -500,9 +500,150 @@ export const AdminDashboard = () => {
                 )}
               </div>
             )}
+
+            {activeTab === 'testimonials' && (
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="font-teko text-3xl font-bold text-forest uppercase">Manage Testimonials</h2>
+                  <button
+                    onClick={handleAddTestimonial}
+                    className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-[#01352a] transition-colors font-manrope font-semibold flex items-center space-x-2"
+                    data-testid="add-testimonial-button"
+                  >
+                    <Plus className="h-5 w-5" />
+                    <span>Add Testimonial</span>
+                  </button>
+                </div>
+
+                {testimonials.length === 0 ? (
+                  <div className="text-center py-12" data-testid="no-testimonials">
+                    <p className="font-manrope text-gray-600">No testimonials yet</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="testimonials-grid">
+                    {testimonials.map((testimonial) => (
+                      <div
+                        key={testimonial.id}
+                        className="bg-white rounded-lg overflow-hidden border border-gray-200"
+                        data-testid={`testimonial-${testimonial.id}`}
+                      >
+                        <div className="aspect-video">
+                          <iframe
+                            width="100%"
+                            height="100%"
+                            src={`https://www.youtube.com/embed/${testimonial.video_id}`}
+                            title={`Testimonial by ${testimonial.customer_name}`}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        </div>
+                        <div className="p-4">
+                          <div className="flex justify-between items-center">
+                            <p className="font-manrope font-semibold text-gray-900">{testimonial.customer_name}</p>
+                            <button
+                              onClick={() => handleDeleteTestimonial(testimonial.id)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                              data-testid={`delete-testimonial-${testimonial.id}`}
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </button>
+                          </div>
+                          <div className="mt-2">
+                            <span className={`inline-block px-2 py-1 text-xs rounded ${testimonial.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                              {testimonial.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {showTestimonialModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" data-testid="testimonial-modal">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h3 className="font-teko text-3xl font-bold text-forest uppercase">
+                Add Testimonial
+              </h3>
+              <button
+                onClick={() => setShowTestimonialModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+                data-testid="close-testimonial-modal"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitTestimonial} className="p-6 space-y-4" data-testid="testimonial-form">
+              <div>
+                <label className="block font-manrope font-semibold text-gray-700 mb-2">Customer Name</label>
+                <input
+                  type="text"
+                  value={testimonialFormData.customer_name}
+                  onChange={(e) => setTestimonialFormData({ ...testimonialFormData, customer_name: e.target.value })}
+                  required
+                  placeholder="John Doe"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
+                  data-testid="customer-name-input"
+                />
+              </div>
+
+              <div>
+                <label className="block font-manrope font-semibold text-gray-700 mb-2">YouTube Video URL</label>
+                <input
+                  type="url"
+                  value={testimonialFormData.youtube_url}
+                  onChange={(e) => setTestimonialFormData({ ...testimonialFormData, youtube_url: e.target.value })}
+                  required
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
+                  data-testid="youtube-url-input"
+                />
+                <p className="text-sm text-gray-500 mt-1">Accepts: YouTube watch, share, embed, or shorts URLs</p>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="testimonial_active"
+                  checked={testimonialFormData.is_active}
+                  onChange={(e) => setTestimonialFormData({ ...testimonialFormData, is_active: e.target.checked })}
+                  className="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary"
+                  data-testid="testimonial-active-checkbox"
+                />
+                <label htmlFor="testimonial_active" className="font-manrope font-semibold text-gray-700">
+                  Show on Homepage
+                </label>
+              </div>
+
+              <div className="flex space-x-4 pt-4">
+                <button
+                  type="submit"
+                  className="flex-1 px-6 py-3 bg-primary text-white rounded-lg hover:bg-[#01352a] transition-colors font-manrope font-bold"
+                  data-testid="submit-testimonial-button"
+                >
+                  Add Testimonial
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowTestimonialModal(false)}
+                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-manrope font-bold"
+                  data-testid="cancel-testimonial-button"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {showCarModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" data-testid="car-modal">
