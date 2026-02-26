@@ -368,6 +368,14 @@ async def update_car(car_id: str, car_update: CarUpdate, admin: dict = Depends(v
         raise HTTPException(status_code=404, detail="Car not found")
     
     update_data = {k: v for k, v in car_update.model_dump().items() if v is not None}
+    
+    # Convert Google Drive URLs if present
+    if 'image' in update_data:
+        update_data['image'] = convert_google_drive_url(update_data['image'])
+    
+    if 'gallery' in update_data and update_data['gallery']:
+        update_data['gallery'] = [convert_google_drive_url(url) for url in update_data['gallery']]
+    
     if update_data:
         await db.cars.update_one({"id": car_id}, {"$set": update_data})
     
