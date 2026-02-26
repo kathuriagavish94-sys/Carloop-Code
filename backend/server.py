@@ -408,6 +408,9 @@ async def bulk_upload_cars(file: UploadFile = File(...), admin: dict = Depends(v
         for row_num, row in enumerate(csv_reader, start=2):
             try:
                 gallery = [img.strip() for img in row.get('gallery', '').split('|') if img.strip()]
+                # Convert Google Drive URLs in gallery
+                gallery = [convert_google_drive_url(url) for url in gallery]
+                
                 features = [f.strip() for f in row.get('features', '').split(',') if f.strip()]
                 
                 specifications = {}
@@ -426,12 +429,15 @@ async def bulk_upload_cars(file: UploadFile = File(...), admin: dict = Depends(v
                 if row.get('color'):
                     specifications['color'] = row['color']
                 
+                # Convert main image URL
+                main_image = convert_google_drive_url(row['image'])
+                
                 car_data = {
                     'make': row['make'],
                     'model': row['model'],
                     'year': int(row['year']),
                     'price': float(row['price']),
-                    'image': row['image'],
+                    'image': main_image,
                     'gallery': gallery,
                     'km_driven': int(row['km_driven']),
                     'fuel_type': row['fuel_type'],
