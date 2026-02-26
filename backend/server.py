@@ -490,6 +490,46 @@ async def get_enquiries(admin: dict = Depends(verify_token)):
             enquiry['created_at'] = datetime.fromisoformat(enquiry['created_at'])
     return enquiries
 
+@api_router.post("/testimonials", response_model=Testimonial)
+async def create_testimonial(testimonial_data: TestimonialCreate, admin: dict = Depends(verify_token)):
+    try:
+        video_id = extract_youtube_video_id(testimonial_data.youtube_url)
+        testimonial = Testimonial(
+            customer_name=testimonial_data.customer_name,
+            youtube_url=testimonial_data.youtube_url,
+            video_id=video_id,
+            is_active=testimonial_data.is_active
+        )
+        doc = testimonial.model_dump()
+        doc['created_at'] = doc['created_at'].isoformat()
+        await db.testimonials.insert_one(doc)
+        return testimonial
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.get("/testimonials", response_model=List[Testimonial])
+async def get_testimonials(active_only: bool = False):
+    query = {"is_active": True} if active_only else {}
+    testimonials = await db.testimonials.find(query, {"_id": 0}).to_list(1000)
+    for testimonial in testimonials:
+        if isinstance(testimonial.get('created_at'), str):
+            testimonial['created_at'] = datetime.fromisoformat(testimonial['created_at'])
+    return testimonials
+
+@api_router.delete("/testimonials/{testimonial_id}")
+async def delete_testimonial(testimonial_id: str, admin: dict = Depends(verify_token)):
+    result = await db.testimonials.delete_one({"id": testimonial_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Testimonial not found")
+    return {"message": "Testimonial deleted successfully"}
+
+@api_router.post("/convert-drive-url")
+async def convert_drive_url_endpoint(request: Request):
+    data = await request.json()
+    url = data.get('url', '')
+    converted_url = convert_google_drive_url(url)
+    return {"original": url, "converted": converted_url}
+
 app.include_router(api_router)
 
 app.add_middleware(
