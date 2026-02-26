@@ -208,6 +208,60 @@ export const AdminDashboard = () => {
     }
   };
 
+  const convertGoogleDriveUrl = async (url) => {
+    if (!url || !url.includes('drive.google.com')) return url;
+    
+    try {
+      const response = await axios.post(`${API}/convert-drive-url`, { url });
+      return response.data.converted;
+    } catch (error) {
+      console.error('Error converting Google Drive URL:', error);
+      return url;
+    }
+  };
+
+  const handleAddTestimonial = () => {
+    setTestimonialFormData({
+      customer_name: '',
+      youtube_url: '',
+      is_active: true,
+    });
+    setShowTestimonialModal(true);
+  };
+
+  const handleSubmitTestimonial = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('admin_token');
+
+    try {
+      await axios.post(`${API}/testimonials`, testimonialFormData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success('Testimonial added successfully!');
+      setShowTestimonialModal(false);
+      fetchData();
+    } catch (error) {
+      console.error('Error submitting testimonial:', error);
+      toast.error(error.response?.data?.detail || 'Failed to add testimonial. Please check the YouTube URL.');
+    }
+  };
+
+  const handleDeleteTestimonial = async (testimonialId) => {
+    if (!window.confirm('Are you sure you want to delete this testimonial?')) return;
+
+    const token = localStorage.getItem('admin_token');
+    try {
+      await axios.delete(`${API}/testimonials/${testimonialId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success('Testimonial deleted successfully!');
+      fetchData();
+    } catch (error) {
+      console.error('Error deleting testimonial:', error);
+      toast.error('Failed to delete testimonial');
+    }
+  };
+
   const formatPrice = (price) => {
     if (price >= 10000000) {
       return `₹${(price / 10000000).toFixed(2)} Cr`;
