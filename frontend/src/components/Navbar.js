@@ -79,9 +79,12 @@ export const Navbar = () => {
     <nav className="glass-nav sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          <Link to="/" className="flex items-center space-x-2" data-testid="logo">
-            <Car className="h-10 w-10 text-primary" />
-            <span className="font-teko text-3xl font-bold text-primary tracking-wide">CARLOOP</span>
+          <Link to="/" className="flex items-center space-x-3" data-testid="logo">
+            <img 
+              src="https://customer-assets.emergentagent.com/job_carloop-dealer/artifacts/ouflwbng_Bold%20%27Carloop%27%20Logo%20with%20Circular%20Emblem.png" 
+              alt="Carloop" 
+              className="h-12 w-auto"
+            />
           </Link>
           
           <div className="hidden md:flex items-center space-x-8">
@@ -160,14 +163,6 @@ export const Navbar = () => {
                 <span>Login</span>
               </button>
             )}
-
-            <Link
-              to="/admin/login"
-              className="px-4 py-2 border-2 border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors font-manrope font-semibold"
-              data-testid="admin-login-link"
-            >
-              Admin
-            </Link>
           </div>
         </div>
       </div>
