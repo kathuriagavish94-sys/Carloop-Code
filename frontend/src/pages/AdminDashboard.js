@@ -11,6 +11,7 @@ export const AdminDashboard = () => {
   const navigate = useNavigate();
   const [cars, setCars] = useState([]);
   const [enquiries, setEnquiries] = useState([]);
+  const [callbackRequests, setCallbackRequests] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('cars');
