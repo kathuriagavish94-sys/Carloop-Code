@@ -388,80 +388,228 @@ async def startup():
         sample_cars = [
             CarCreate(
                 make="Mercedes-Benz",
-                model="E-Class",
+                model="E-Class E 220d",
                 year=2021,
                 price=3500000,
                 image="https://images.pexels.com/photos/12070967/pexels-photo-12070967.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+                gallery=[
+                    "https://images.pexels.com/photos/12070967/pexels-photo-12070967.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+                    "https://images.unsplash.com/photo-1617531653520-bd466115490d?w=800",
+                    "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800",
+                    "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800"
+                ],
                 km_driven=25000,
-                fuel_type="Petrol",
+                fuel_type="Diesel",
                 transmission="Automatic",
+                owners=1,
+                rto="DL3C",
                 condition="Excellent",
-                features=["Sunroof", "Leather Seats", "Navigation"],
+                features=["Sunroof", "Leather Seats", "Navigation", "Rear Camera", "Parking Sensors", "Alloy Wheels", "Climate Control"],
+                specifications={
+                    "engine": "2.0L Diesel",
+                    "power": "194 bhp",
+                    "torque": "400 Nm",
+                    "mileage": "17.9 kmpl",
+                    "seats": 5,
+                    "body_type": "Sedan",
+                    "color": "Black"
+                },
                 is_featured=True
             ),
             CarCreate(
                 make="BMW",
-                model="3 Series",
+                model="3 Series 320d M Sport",
                 year=2020,
                 price=2800000,
-                image="https://images.unsplash.com/photo-1555215695-3004980ad54e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w0NjA1NzR8MHwxfHNlYXJjaHwxfHxibXclMjAzJTIwc2VyaWVzfGVufDB8fHx8MTY3MjA4NDkxMnww&ixlib=rb-4.1.0&q=85",
+                image="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800",
+                gallery=[
+                    "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800",
+                    "https://images.unsplash.com/photo-1617531653520-bd466115490d?w=800",
+                    "https://images.unsplash.com/photo-1617531653457-c4b2b7e1b7e0?w=800"
+                ],
                 km_driven=30000,
                 fuel_type="Diesel",
                 transmission="Automatic",
+                owners=1,
+                rto="HR26",
                 condition="Excellent",
-                features=["Sunroof", "Alloy Wheels"],
+                features=["Sunroof", "Alloy Wheels", "M Sport Package", "LED Headlights", "Rear Camera"],
+                specifications={
+                    "engine": "2.0L Diesel",
+                    "power": "190 bhp",
+                    "torque": "400 Nm",
+                    "mileage": "18.3 kmpl",
+                    "seats": 5,
+                    "body_type": "Sedan",
+                    "color": "White"
+                },
                 is_featured=True
             ),
             CarCreate(
                 make="Audi",
-                model="A4",
+                model="A4 Premium Plus 2.0 TFSI",
                 year=2022,
                 price=4200000,
-                image="https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?crop=entropy&cs=srgb&fm=jpg&ixid=M3w0NjA1NzR8MHwxfHNlYXJjaHwxfHxhdWRpJTIwYTR8ZW58MHx8fHwxNjcyMDg0OTE1fDA&ixlib=rb-4.1.0&q=85",
+                image="https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800",
+                gallery=[
+                    "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800",
+                    "https://images.unsplash.com/photo-1614200187524-dc4b892acf16?w=800",
+                    "https://images.unsplash.com/photo-1617531653520-bd466115490d?w=800"
+                ],
                 km_driven=18000,
                 fuel_type="Petrol",
                 transmission="Automatic",
+                owners=1,
+                rto="DL8C",
                 condition="Excellent",
-                features=["Sunroof", "Leather Seats", "Premium Sound"],
+                features=["Sunroof", "Leather Seats", "Premium Sound", "Virtual Cockpit", "Matrix LED", "Wireless Charging"],
+                specifications={
+                    "engine": "2.0L TFSI Petrol",
+                    "power": "190 bhp",
+                    "torque": "320 Nm",
+                    "mileage": "13.9 kmpl",
+                    "seats": 5,
+                    "body_type": "Sedan",
+                    "color": "Grey"
+                },
                 is_featured=True
             ),
             CarCreate(
                 make="Maruti Suzuki",
-                model="Swift",
+                model="Swift VXI",
                 year=2019,
                 price=550000,
-                image="https://images.unsplash.com/photo-1583121274602-3e2820c69888?crop=entropy&cs=srgb&fm=jpg&ixid=M3w0NjA1NzR8MHwxfHNlYXJjaHwxfHxtYXJ1dGklMjBzd2lmdHxlbnwwfHx8fDE2NzIwODQ5MTh8MA&ixlib=rb-4.1.0&q=85",
+                image="https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800",
+                gallery=[
+                    "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800",
+                    "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800"
+                ],
                 km_driven=45000,
                 fuel_type="Petrol",
                 transmission="Manual",
+                owners=1,
+                rto="DL1C",
                 condition="Good",
-                features=["Power Windows", "AC"],
+                features=["Power Windows", "AC", "Music System", "ABS"],
+                specifications={
+                    "engine": "1.2L Petrol",
+                    "power": "82 bhp",
+                    "torque": "113 Nm",
+                    "mileage": "21.2 kmpl",
+                    "seats": 5,
+                    "body_type": "Hatchback",
+                    "color": "Red"
+                },
                 is_featured=False
             ),
             CarCreate(
                 make="Hyundai",
-                model="Creta",
+                model="Creta SX Diesel",
                 year=2021,
                 price=1450000,
-                image="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w0NjA1NzR8MHwxfHNlYXJjaHwxfHxoeXVuZGFpJTIwY3JldGF8ZW58MHx8fHwxNjcyMDg0OTIxfDA&ixlib=rb-4.1.0&q=85",
+                image="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800",
+                gallery=[
+                    "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800",
+                    "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800"
+                ],
                 km_driven=32000,
                 fuel_type="Diesel",
                 transmission="Automatic",
+                owners=1,
+                rto="HR51",
                 condition="Excellent",
-                features=["Sunroof", "Touchscreen", "Rear Camera"],
+                features=["Sunroof", "Touchscreen", "Rear Camera", "Cruise Control", "Ventilated Seats"],
+                specifications={
+                    "engine": "1.5L Diesel",
+                    "power": "115 bhp",
+                    "torque": "250 Nm",
+                    "mileage": "18.5 kmpl",
+                    "seats": 5,
+                    "body_type": "SUV",
+                    "color": "White"
+                },
                 is_featured=False
             ),
             CarCreate(
                 make="Honda",
-                model="City",
+                model="City VX CVT",
                 year=2020,
                 price=980000,
-                image="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w0NjA1NzR8MHwxfHNlYXJjaHwxfHxob25kYSUyMGNpdHl8ZW58MHx8fHwxNjcyMDg0OTI0fDA&ixlib=rb-4.1.0&q=85",
+                image="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800",
+                gallery=[
+                    "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800",
+                    "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800"
+                ],
                 km_driven=38000,
                 fuel_type="Petrol",
-                transmission="Manual",
+                transmission="Automatic",
+                owners=1,
+                rto="DL9C",
                 condition="Good",
-                features=["Touchscreen", "Rear Camera"],
+                features=["Touchscreen", "Rear Camera", "Alloy Wheels", "Push Button Start"],
+                specifications={
+                    "engine": "1.5L Petrol",
+                    "power": "121 bhp",
+                    "torque": "145 Nm",
+                    "mileage": "17.8 kmpl",
+                    "seats": 5,
+                    "body_type": "Sedan",
+                    "color": "Silver"
+                },
+                is_featured=False
+            ),
+            CarCreate(
+                make="Tata",
+                model="Nexon XZ+ Petrol",
+                year=2022,
+                price=1150000,
+                image="https://images.unsplash.com/photo-1617654112368-307921291f42?w=800",
+                gallery=[
+                    "https://images.unsplash.com/photo-1617654112368-307921291f42?w=800"
+                ],
+                km_driven=22000,
+                fuel_type="Petrol",
+                transmission="Manual",
+                owners=1,
+                rto="UP16",
+                condition="Excellent",
+                features=["Sunroof", "Touchscreen", "Rear Camera", "Dual Airbags", "ABS", "Cooled Glovebox"],
+                specifications={
+                    "engine": "1.2L Turbo Petrol",
+                    "power": "120 bhp",
+                    "torque": "170 Nm",
+                    "mileage": "17.2 kmpl",
+                    "seats": 5,
+                    "body_type": "SUV",
+                    "color": "Blue"
+                },
+                is_featured=False
+            ),
+            CarCreate(
+                make="Mahindra",
+                model="XUV700 AX7 Diesel",
+                year=2023,
+                price=2150000,
+                image="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=800",
+                gallery=[
+                    "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=800"
+                ],
+                km_driven=15000,
+                fuel_type="Diesel",
+                transmission="Automatic",
+                owners=1,
+                rto="MH12",
+                condition="Excellent",
+                features=["Panoramic Sunroof", "ADAS", "360 Camera", "Wireless Charger", "Premium Audio", "Ventilated Seats"],
+                specifications={
+                    "engine": "2.2L Diesel",
+                    "power": "185 bhp",
+                    "torque": "450 Nm",
+                    "mileage": "16.1 kmpl",
+                    "seats": 7,
+                    "body_type": "SUV",
+                    "color": "Black"
+                },
                 is_featured=False
             )
         ]
