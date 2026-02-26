@@ -150,10 +150,8 @@ export const AdminDashboard = () => {
   };
 
   const handleDownloadTemplate = async () => {
-    const token = localStorage.getItem('admin_token');
     try {
-      const response = await axios.get(`${API}/cars/download-template`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await axios.get(`${API}/cars/template/download`, {
         responseType: 'blob',
       });
       
