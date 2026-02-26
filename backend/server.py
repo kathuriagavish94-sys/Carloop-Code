@@ -339,6 +339,104 @@ async def delete_car(car_id: str, admin: dict = Depends(verify_token)):
         raise HTTPException(status_code=404, detail="Car not found")
     return {"message": "Car deleted successfully"}
 
+@api_router.post("/cars/bulk-upload")
+async def bulk_upload_cars(file: UploadFile = File(...), admin: dict = Depends(verify_token)):
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="Only CSV files are allowed")
+    
+    try:
+        contents = await file.read()
+        csv_data = contents.decode('utf-8')
+        csv_reader = csv.DictReader(io.StringIO(csv_data))
+        
+        added_count = 0
+        updated_count = 0
+        errors = []
+        
+        for row_num, row in enumerate(csv_reader, start=2):
+            try:
+                gallery = [img.strip() for img in row.get('gallery', '').split('|') if img.strip()]
+                features = [f.strip() for f in row.get('features', '').split(',') if f.strip()]
+                
+                specifications = {}
+                if row.get('engine'):
+                    specifications['engine'] = row['engine']
+                if row.get('power'):
+                    specifications['power'] = row['power']
+                if row.get('torque'):
+                    specifications['torque'] = row['torque']
+                if row.get('mileage'):
+                    specifications['mileage'] = row['mileage']
+                if row.get('seats'):
+                    specifications['seats'] = int(row['seats']) if row['seats'] else 5
+                if row.get('body_type'):
+                    specifications['body_type'] = row['body_type']
+                if row.get('color'):
+                    specifications['color'] = row['color']
+                
+                car_data = {
+                    'make': row['make'],
+                    'model': row['model'],
+                    'year': int(row['year']),
+                    'price': float(row['price']),
+                    'image': row['image'],
+                    'gallery': gallery,
+                    'km_driven': int(row['km_driven']),
+                    'fuel_type': row['fuel_type'],
+                    'transmission': row['transmission'],
+                    'owners': int(row.get('owners', 1)),
+                    'rto': row.get('rto', 'DL'),
+                    'condition': row.get('condition', 'Excellent'),
+                    'features': features,
+                    'specifications': specifications,
+                    'is_featured': row.get('is_featured', '').lower() in ['true', 'yes', '1']
+                }
+                
+                existing_car = await db.cars.find_one({
+                    'make': car_data['make'],
+                    'model': car_data['model'],
+                    'year': car_data['year']
+                }, {"_id": 0})
+                
+                if existing_car:
+                    await db.cars.update_one(
+                        {'id': existing_car['id']},
+                        {'$set': car_data}
+                    )
+                    updated_count += 1
+                else:
+                    car = Car(**car_data)
+                    doc = car.model_dump()
+                    doc['created_at'] = doc['created_at'].isoformat()
+                    await db.cars.insert_one(doc)
+                    added_count += 1
+                    
+            except Exception as e:
+                errors.append(f"Row {row_num}: {str(e)}")
+        
+        return {
+            "message": "Bulk upload completed",
+            "added": added_count,
+            "updated": updated_count,
+            "errors": errors
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error processing CSV: {str(e)}")
+
+@api_router.get("/cars/download-template")
+async def download_csv_template():
+    csv_content = """make,model,year,price,image,gallery,km_driven,fuel_type,transmission,owners,rto,condition,features,engine,power,torque,mileage,seats,body_type,color,is_featured
+Mercedes-Benz,E-Class E 220d,2021,3500000,https://images.pexels.com/photos/12070967/pexels-photo-12070967.jpeg,https://images.pexels.com/photos/12070967/pexels-photo-12070967.jpeg|https://images.unsplash.com/photo-1617531653520-bd466115490d,25000,Diesel,Automatic,1,DL3C,Excellent,"Sunroof,Leather Seats,Navigation,Rear Camera",2.0L Diesel,194 bhp,400 Nm,17.9 kmpl,5,Sedan,Black,true
+BMW,3 Series 320d M Sport,2020,2800000,https://images.unsplash.com/photo-1555215695-3004980ad54e,https://images.unsplash.com/photo-1555215695-3004980ad54e|https://images.unsplash.com/photo-1617531653520-bd466115490d,30000,Diesel,Automatic,1,HR26,Excellent,"Sunroof,Alloy Wheels,M Sport Package",2.0L Diesel,190 bhp,400 Nm,18.3 kmpl,5,Sedan,White,true
+Maruti Suzuki,Swift VXI,2019,550000,https://images.unsplash.com/photo-1583121274602-3e2820c69888,,45000,Petrol,Manual,1,DL1C,Good,"Power Windows,AC,Music System",1.2L Petrol,82 bhp,113 Nm,21.2 kmpl,5,Hatchback,Red,false"""
+    
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=carloop_inventory_template.csv"}
+    )
+
 @api_router.post("/enquiries", response_model=Enquiry)
 async def create_enquiry(enquiry_data: EnquiryCreate):
     enquiry = Enquiry(**enquiry_data.model_dump())
