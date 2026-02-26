@@ -80,6 +80,7 @@ export const AdminDashboard = () => {
       year: new Date().getFullYear(),
       price: '',
       image: '',
+      gallery: '',
       km_driven: '',
       fuel_type: 'Petrol',
       transmission: 'Manual',
