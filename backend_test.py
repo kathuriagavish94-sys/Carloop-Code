@@ -317,9 +317,169 @@ class CarloopAPITester:
         
         return success and success2
 
+    def test_create_testimonial(self):
+        """Test creating a testimonial (admin required)"""
+        if not self.admin_token:
+            print("❌ Create Testimonial - No admin token available")
+            return False
+        
+        testimonial_data = {
+            "customer_name": "John Smith",
+            "youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            "is_active": True
+        }
+        
+        success, response = self.run_test(
+            "Create Testimonial",
+            "POST",
+            "testimonials",
+            200,
+            data=testimonial_data,
+            auth_required=True
+        )
+        
+        if success and response.get('customer_name') == 'John Smith':
+            print(f"   🎥 Created testimonial for: {response.get('customer_name')}")
+            return response.get('id')
+        return False
+
+    def test_get_testimonials(self):
+        """Test getting all testimonials"""
+        success, response = self.run_test(
+            "Get All Testimonials",
+            "GET",
+            "testimonials",
+            200
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   🎬 Found {len(response)} testimonials")
+            return response
+        return False
+
+    def test_get_active_testimonials(self):
+        """Test getting active testimonials only"""
+        success, response = self.run_test(
+            "Get Active Testimonials",
+            "GET",
+            "testimonials?active_only=true",
+            200
+        )
+        
+        if success and isinstance(response, list):
+            active_count = len(response)
+            print(f"   ✅ Found {active_count} active testimonials")
+            return True
+        return False
+
+    def test_delete_testimonial(self, testimonial_id):
+        """Test deleting a testimonial"""
+        if not self.admin_token or not testimonial_id:
+            print("❌ Delete Testimonial - No admin token or testimonial ID available")
+            return False
+        
+        return self.run_test(
+            "Delete Testimonial",
+            "DELETE",
+            f"testimonials/{testimonial_id}",
+            200,
+            auth_required=True
+        )
+
+    def test_convert_google_drive_url(self):
+        """Test Google Drive URL conversion"""
+        test_cases = [
+            {
+                "name": "Valid Google Drive URL",
+                "url": "https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/view?usp=sharing",
+                "expected_contains": "https://drive.google.com/uc?export=view&id="
+            },
+            {
+                "name": "Regular URL (no conversion)",
+                "url": "https://example.com/image.jpg",
+                "expected_contains": "https://example.com/image.jpg"
+            },
+            {
+                "name": "Another Google Drive URL format",
+                "url": "https://drive.google.com/file/d/abc123xyz/edit",
+                "expected_contains": "https://drive.google.com/uc?export=view&id=abc123xyz"
+            }
+        ]
+        
+        all_passed = True
+        for test_case in test_cases:
+            print(f"\n   Testing {test_case['name']}")
+            
+            success, response = self.run_test(
+                f"Convert Drive URL - {test_case['name']}",
+                "POST",
+                "convert-drive-url",
+                200,
+                data={"url": test_case["url"]}
+            )
+            
+            if success and response.get('converted'):
+                converted_url = response.get('converted')
+                if test_case['expected_contains'] in converted_url or converted_url == test_case['url']:
+                    print(f"   ✅ Conversion successful: {converted_url[:50]}...")
+                else:
+                    print(f"   ❌ Unexpected conversion result: {converted_url}")
+                    all_passed = False
+            else:
+                all_passed = False
+        
+        return all_passed
+
+    def test_youtube_url_extraction(self):
+        """Test YouTube URL formats for video ID extraction"""
+        youtube_test_urls = [
+            "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            "https://youtu.be/dQw4w9WgXcQ", 
+            "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            "https://www.youtube.com/shorts/dQw4w9WgXcQ"
+        ]
+        
+        if not self.admin_token:
+            print("❌ YouTube URL extraction test - No admin token available")
+            return False
+        
+        all_passed = True
+        for url in youtube_test_urls:
+            testimonial_data = {
+                "customer_name": f"Test User {url[-10:]}",
+                "youtube_url": url,
+                "is_active": True
+            }
+            
+            success, response = self.run_test(
+                f"YouTube URL Format Test",
+                "POST",
+                "testimonials",
+                200,
+                data=testimonial_data,
+                auth_required=True
+            )
+            
+            if success and response.get('video_id') == 'dQw4w9WgXcQ':
+                print(f"   ✅ URL format supported: {url}")
+                # Clean up - delete the test testimonial
+                if response.get('id'):
+                    self.run_test(
+                        "Cleanup Test Testimonial",
+                        "DELETE", 
+                        f"testimonials/{response.get('id')}",
+                        200,
+                        auth_required=True
+                    )
+            else:
+                print(f"   ❌ URL format failed: {url}")
+                all_passed = False
+        
+        return all_passed
+
 def main():
-    print("🚗 CARLOOP API TESTING SUITE")
-    print("=" * 50)
+    print("🚗 CARLOOP API TESTING SUITE - NEW FEATURES")
+    print("=" * 60)
     
     tester = CarloopAPITester()
     
@@ -352,8 +512,21 @@ def main():
     
     if admin_login_success:
         tester.test_get_enquiries()
+
+    print("\n🎥 PHASE 5: NEW FEATURE - Testimonials System Tests")
+    tester.test_get_testimonials()
+    tester.test_get_active_testimonials()
     
-    print("\n🔒 PHASE 5: Security Tests")
+    if admin_login_success:
+        testimonial_id = tester.test_create_testimonial()
+        tester.test_youtube_url_extraction()
+        if testimonial_id:
+            tester.test_delete_testimonial(testimonial_id)
+
+    print("\n🔗 PHASE 6: NEW FEATURE - Google Drive URL Conversion Tests")
+    tester.test_convert_google_drive_url()
+    
+    print("\n🔒 PHASE 7: Security Tests")
     tester.test_unauthorized_actions()
     
     # Final results
