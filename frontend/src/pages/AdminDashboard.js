@@ -322,6 +322,17 @@ export const AdminDashboard = () => {
               >
                 Enquiries ({enquiries.length})
               </button>
+              <button
+                onClick={() => setActiveTab('testimonials')}
+                className={`px-6 py-4 font-manrope font-semibold ${
+                  activeTab === 'testimonials'
+                    ? 'border-b-2 border-primary text-primary'
+                    : 'text-gray-600 hover:text-primary'
+                }`}
+                data-testid="testimonials-tab"
+              >
+                Testimonials ({testimonials.length})
+              </button>
             </nav>
           </div>
 
