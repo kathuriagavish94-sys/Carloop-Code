@@ -143,6 +143,20 @@ class EnquiryCreate(BaseModel):
     message: str
     car_id: Optional[str] = None
 
+class CallbackRequest(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    phone: str
+    car_id: Optional[str] = None
+    car_details: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CallbackRequestCreate(BaseModel):
+    name: str
+    phone: str
+    car_id: Optional[str] = None
+
 class Testimonial(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
