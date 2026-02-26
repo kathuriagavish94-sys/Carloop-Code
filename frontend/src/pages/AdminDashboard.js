@@ -783,6 +783,9 @@ export const AdminDashboard = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
                   data-testid="image-input"
                 />
+                <p className="text-sm text-gray-500 mt-1">
+                  💡 Tip: Google Drive links work! Just paste the share link (e.g., https://drive.google.com/file/d/...)
+                </p>
               </div>
 
               <div>
