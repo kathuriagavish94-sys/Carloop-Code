@@ -783,9 +783,15 @@ export const AdminDashboard = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
                   data-testid="image-input"
                 />
-                <p className="text-sm text-gray-500 mt-1">
-                  💡 Tip: Google Drive links work! Just paste the share link (e.g., https://drive.google.com/file/d/...)
-                </p>
+                <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm font-manrope font-semibold text-blue-900 mb-1">📸 Google Drive Images:</p>
+                  <ol className="text-xs font-manrope text-blue-800 space-y-1 ml-4 list-decimal">
+                    <li>Upload image to Google Drive</li>
+                    <li>Right-click → Share → Change to <strong>"Anyone with the link"</strong></li>
+                    <li>Copy and paste the share link here</li>
+                    <li>System auto-converts to direct image URL ✨</li>
+                  </ol>
+                </div>
               </div>
 
               <div>
