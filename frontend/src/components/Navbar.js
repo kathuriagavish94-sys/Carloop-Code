@@ -83,7 +83,7 @@ export const Navbar = () => {
             <img 
               src="https://customer-assets.emergentagent.com/job_carloop-dealer/artifacts/ouflwbng_Bold%20%27Carloop%27%20Logo%20with%20Circular%20Emblem.png" 
               alt="Carloop" 
-              className="h-12 w-auto"
+              className="h-16 w-auto"
             />
           </Link>
           
