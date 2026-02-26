@@ -348,7 +348,14 @@ async def get_car(car_id: str):
 
 @api_router.post("/cars", response_model=Car)
 async def create_car(car_data: CarCreate, admin: dict = Depends(verify_token)):
-    car = Car(**car_data.model_dump())
+    # Convert Google Drive URLs
+    car_dict = car_data.model_dump()
+    car_dict['image'] = convert_google_drive_url(car_dict['image'])
+    
+    if car_dict.get('gallery'):
+        car_dict['gallery'] = [convert_google_drive_url(url) for url in car_dict['gallery']]
+    
+    car = Car(**car_dict)
     doc = car.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     await db.cars.insert_one(doc)
