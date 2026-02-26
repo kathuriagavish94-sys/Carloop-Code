@@ -806,6 +806,22 @@ export const AdminDashboard = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
                   data-testid="features-input"
                 />
+                <p className="text-xs text-gray-500 mt-1">Separate multiple features with commas</p>
+              </div>
+
+              <div>
+                <label className="block font-manrope font-semibold text-gray-700 mb-2">
+                  Gallery Images (optional)
+                </label>
+                <textarea
+                  value={carFormData.gallery || ''}
+                  onChange={(e) => setCarFormData({ ...carFormData, gallery: e.target.value })}
+                  placeholder="https://example.com/image1.jpg|https://drive.google.com/file/d/ABC/view|https://example.com/image3.jpg"
+                  rows="3"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
+                  data-testid="gallery-input"
+                />
+                <p className="text-xs text-gray-500 mt-1">Separate multiple image URLs with | (pipe). Google Drive links supported!</p>
               </div>
 
               <div className="flex items-center space-x-2">
