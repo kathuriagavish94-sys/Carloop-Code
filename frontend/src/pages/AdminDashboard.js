@@ -323,6 +323,17 @@ export const AdminDashboard = () => {
                 Inventory ({cars.length})
               </button>
               <button
+                onClick={() => setActiveTab('callbacks')}
+                className={`px-6 py-4 font-manrope font-semibold ${
+                  activeTab === 'callbacks'
+                    ? 'border-b-2 border-primary text-primary'
+                    : 'text-gray-600 hover:text-primary'
+                }`}
+                data-testid="callbacks-tab"
+              >
+                Call Requests ({callbackRequests.length})
+              </button>
+              <button
                 onClick={() => setActiveTab('enquiries')}
                 className={`px-6 py-4 font-manrope font-semibold ${
                   activeTab === 'enquiries'
