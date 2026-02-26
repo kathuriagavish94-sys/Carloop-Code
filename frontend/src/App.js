@@ -46,6 +46,7 @@ function AppRouter() {
         />
       </Routes>
       <Footer />
+      <WhatsAppButton />
     </>
   );
 }
