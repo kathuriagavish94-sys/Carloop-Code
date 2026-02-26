@@ -16,6 +16,13 @@ export const InventoryPage = () => {
     transmission: 'all',
     priceRange: 'all',
   });
+  const [showCallbackModal, setShowCallbackModal] = useState(false);
+  const [selectedCar, setSelectedCar] = useState(null);
+  const [callbackForm, setCallbackForm] = useState({
+    name: '',
+    phone: '',
+  });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchCars();
