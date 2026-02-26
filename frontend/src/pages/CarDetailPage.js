@@ -36,21 +36,21 @@ export const CarDetailPage = () => {
     }
   };
 
-  const handleSubmitEnquiry = async (e) => {
+  const handleSubmitCallback = async (e) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      await axios.post(`${API}/enquiries`, {
+      await axios.post(`${API}/callback-requests`, {
         ...formData,
         car_id: id,
       });
-      toast.success('Enquiry submitted successfully! We will contact you soon.');
-      setShowEnquiryForm(false);
-      setFormData({ name: '', email: '', phone: '', message: '' });
+      toast.success('Callback request submitted! We will call you back soon.');
+      setShowCallbackForm(false);
+      setFormData({ name: '', phone: '' });
     } catch (error) {
-      console.error('Error submitting enquiry:', error);
-      toast.error('Failed to submit enquiry. Please try again.');
+      console.error('Error submitting callback:', error);
+      toast.error('Failed to submit request. Please try again.');
     } finally {
       setSubmitting(false);
     }
