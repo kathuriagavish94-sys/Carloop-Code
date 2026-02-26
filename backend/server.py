@@ -539,6 +539,33 @@ async def get_enquiries(admin: dict = Depends(verify_token)):
             enquiry['created_at'] = datetime.fromisoformat(enquiry['created_at'])
     return enquiries
 
+@api_router.post("/callback-requests", response_model=CallbackRequest)
+async def create_callback_request(callback_data: CallbackRequestCreate):
+    car_details = ""
+    if callback_data.car_id:
+        car = await db.cars.find_one({"id": callback_data.car_id}, {"_id": 0})
+        if car:
+            car_details = f"{car.get('make')} {car.get('model')} ({car.get('year')})"
+    
+    callback = CallbackRequest(
+        name=callback_data.name,
+        phone=callback_data.phone,
+        car_id=callback_data.car_id,
+        car_details=car_details
+    )
+    doc = callback.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.callback_requests.insert_one(doc)
+    return callback
+
+@api_router.get("/callback-requests", response_model=List[CallbackRequest])
+async def get_callback_requests(admin: dict = Depends(verify_token)):
+    callbacks = await db.callback_requests.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    for callback in callbacks:
+        if isinstance(callback.get('created_at'), str):
+            callback['created_at'] = datetime.fromisoformat(callback['created_at'])
+    return callbacks
+
 @api_router.post("/testimonials", response_model=Testimonial)
 async def create_testimonial(testimonial_data: TestimonialCreate, admin: dict = Depends(verify_token)):
     try:
