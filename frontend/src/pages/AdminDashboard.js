@@ -473,6 +473,51 @@ export const AdminDashboard = () => {
               </div>
             )}
 
+            {activeTab === 'callbacks' && (
+              <div>
+                <h2 className="font-teko text-3xl font-bold text-forest uppercase mb-6">Callback Requests</h2>
+                
+                {callbackRequests.length === 0 ? (
+                  <div className="text-center py-12" data-testid="no-callbacks">
+                    <p className="font-manrope text-gray-600">No callback requests yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4" data-testid="callbacks-list">
+                    {callbackRequests.map((callback) => (
+                      <div
+                        key={callback.id}
+                        className="bg-gray-50 rounded-lg p-6 border border-gray-200"
+                        data-testid={`callback-${callback.id}`}
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="font-manrope font-bold text-lg text-gray-900">{callback.name}</h3>
+                            <div className="flex items-center space-x-2 mt-2">
+                              <Phone className="h-4 w-4 text-primary" />
+                              <a href={`tel:${callback.phone}`} className="font-manrope text-primary font-semibold hover:underline">
+                                {callback.phone}
+                              </a>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-1 text-sm text-gray-500">
+                            <Calendar className="h-4 w-4" />
+                            <span>{formatDate(callback.created_at)}</span>
+                          </div>
+                        </div>
+                        {callback.car_details && (
+                          <div className="mt-3 pt-3 border-t border-gray-300">
+                            <p className="font-manrope text-sm text-gray-600">
+                              Interested in: <span className="font-semibold text-primary">{callback.car_details}</span>
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {activeTab === 'enquiries' && (
               <div>
                 <h2 className="font-teko text-3xl font-bold text-forest uppercase mb-6">Customer Enquiries</h2>
