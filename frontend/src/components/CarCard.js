@@ -4,6 +4,7 @@ import { Calendar, Fuel, Gauge, Settings } from 'lucide-react';
 
 export const CarCard = ({ car }) => {
   const navigate = useNavigate();
+  const isSoldOrBooked = car.status === 'Sold' || car.status === 'Booked';
 
   const formatPrice = (price) => {
     if (price >= 10000000) {
@@ -24,7 +25,15 @@ export const CarCard = ({ car }) => {
   };
 
   return (
-    <div className="car-card bg-white rounded-lg border border-gray-200 overflow-hidden" data-testid={`car-card-${car.id}`}>
+    <div className={`car-card bg-white rounded-lg border border-gray-200 overflow-hidden relative ${isSoldOrBooked ? 'opacity-70' : ''}`} data-testid={`car-card-${car.id}`}>
+      {isSoldOrBooked && (
+        <div className="absolute inset-0 bg-gray-900 bg-opacity-40 z-10 flex items-center justify-center">
+          <div className={`px-6 py-3 rounded-lg font-teko text-3xl font-bold text-white ${car.status === 'Sold' ? 'bg-red-600' : 'bg-yellow-600'}`}>
+            {car.status.toUpperCase()}
+          </div>
+        </div>
+      )}
+      
       <div className="aspect-video relative overflow-hidden">
         <img
           src={car.image}
@@ -63,10 +72,15 @@ export const CarCard = ({ car }) => {
 
         <button
           onClick={() => navigate(`/inventory/${car.id}`)}
-          className="w-full px-4 py-2 border-2 border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors font-manrope font-semibold"
+          disabled={isSoldOrBooked}
+          className={`w-full px-4 py-2 border-2 rounded-lg font-manrope font-semibold transition-colors ${
+            isSoldOrBooked 
+              ? 'border-gray-300 text-gray-400 cursor-not-allowed' 
+              : 'border-primary text-primary hover:bg-primary hover:text-white'
+          }`}
           data-testid="view-details-button"
         >
-          View Details
+          {isSoldOrBooked ? car.status : 'View Details'}
         </button>
       </div>
     </div>
