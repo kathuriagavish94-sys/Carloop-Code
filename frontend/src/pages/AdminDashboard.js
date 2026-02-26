@@ -11,9 +11,11 @@ export const AdminDashboard = () => {
   const navigate = useNavigate();
   const [cars, setCars] = useState([]);
   const [enquiries, setEnquiries] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('cars');
   const [showCarModal, setShowCarModal] = useState(false);
+  const [showTestimonialModal, setShowTestimonialModal] = useState(false);
   const [editingCar, setEditingCar] = useState(null);
   const [carFormData, setCarFormData] = useState({
     make: '',
@@ -27,6 +29,11 @@ export const AdminDashboard = () => {
     condition: 'Excellent',
     features: '',
     is_featured: false,
+  });
+  const [testimonialFormData, setTestimonialFormData] = useState({
+    customer_name: '',
+    youtube_url: '',
+    is_active: true,
   });
   const [uploadingCsv, setUploadingCsv] = useState(false);
   const [csvResult, setCsvResult] = useState(null);
