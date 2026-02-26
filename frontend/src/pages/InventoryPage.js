@@ -177,12 +177,107 @@ export const InventoryPage = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" data-testid="inventory-grid">
               {filteredCars.map((car) => (
-                <CarCard key={car.id} car={car} />
+                <div key={car.id} className="relative">
+                  <CarCard car={car} />
+                  {car.status === 'Available' && (
+                    <button
+                      onClick={() => handleCallbackRequest(car)}
+                      className="mt-4 w-full px-4 py-3 bg-accent text-white rounded-lg hover:bg-[#d94d0a] transition-colors font-manrope font-semibold"
+                      data-testid={`callback-btn-${car.id}`}
+                    >
+                      Get A Call Back
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           </>
         )}
       </div>
+
+      {showCallbackModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" data-testid="callback-modal">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="flex justify-between items-center p-6 border-b">
+              <div>
+                <h3 className="font-teko text-3xl font-bold text-forest uppercase">
+                  Request A Call Back
+                </h3>
+                {selectedCar && (
+                  <p className="font-manrope text-sm text-gray-600 mt-1">
+                    For: {selectedCar.make} {selectedCar.model} ({selectedCar.year})
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => {
+                  setShowCallbackModal(false);
+                  setSelectedCar(null);
+                  setCallbackForm({ name: '', phone: '' });
+                }}
+                className="text-gray-500 hover:text-gray-700"
+                data-testid="close-callback-modal"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitCallback} className="p-6 space-y-4" data-testid="callback-form">
+              <div>
+                <label className="block font-manrope font-semibold text-gray-700 mb-2">Your Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter your name"
+                  value={callbackForm.name}
+                  onChange={(e) => setCallbackForm({ ...callbackForm, name: e.target.value })}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
+                  data-testid="callback-name-input"
+                />
+              </div>
+
+              <div>
+                <label className="block font-manrope font-semibold text-gray-700 mb-2">Mobile Number</label>
+                <input
+                  type="tel"
+                  placeholder="Enter 10-digit mobile number"
+                  value={callbackForm.phone}
+                  onChange={(e) => setCallbackForm({ ...callbackForm, phone: e.target.value })}
+                  required
+                  pattern="[0-9]{10}"
+                  maxLength="10"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
+                  data-testid="callback-phone-input"
+                />
+                <p className="text-xs text-gray-500 mt-1">We'll call you back within 2 hours during business hours</p>
+              </div>
+
+              <div className="flex space-x-4 pt-4">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 px-6 py-3 bg-primary text-white rounded-lg hover:bg-[#01352a] transition-colors font-manrope font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                  data-testid="callback-submit-button"
+                >
+                  {submitting ? 'Submitting...' : 'Submit Request'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCallbackModal(false);
+                    setSelectedCar(null);
+                    setCallbackForm({ name: '', phone: '' });
+                  }}
+                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-manrope font-bold"
+                  data-testid="callback-cancel-button"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
