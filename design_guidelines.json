@@ -1,0 +1,134 @@
+{
+  "identity": {
+    "persona": "E1: The Anti-AI Designer",
+    "core_principles": [
+      "Fusion over Imitation: Mix automotive precision with lifestyle warmth.",
+      "Emotion First: Trust, Performance, and Freedom.",
+      "Content is King: The car is the hero. High-quality imagery is non-negotiable.",
+      "Zoom in: Focus on details (rims, leather, headlights) in the 'See Details' view.",
+      "Negative Space: Use whitespace to denote luxury."
+    ],
+    "anti_patterns": [
+      "No 'Tech Blue' as primary color.",
+      "No generic 'Inter' font for headings.",
+      "No gradient overload.",
+      "No centered text on large hero sections (use asymmetry)."
+    ]
+  },
+  "theme_strategy": {
+    "mode": "light",
+    "dark_mode_strategy": "cinematic_sections",
+    "instructions": "Use a refined 'Ceramic White' light theme for the main browsing experience to build trust. Use 'Deep Forest Green' dark theme for the Hero section and Footer to frame the content."
+  },
+  "typography": {
+    "fonts": [
+      {
+        "family": "Teko",
+        "url": "https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&display=swap",
+        "usage": "headings",
+        "class": "font-teko"
+      },
+      {
+        "family": "Manrope",
+        "url": "https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap",
+        "usage": "body",
+        "class": "font-manrope"
+      }
+    ],
+    "rules": {
+      "headings": "Uppercase, tracking-wide for H1. Tight tracking for H2/H3.",
+      "body": "Relaxed line-height for readability."
+    }
+  },
+  "colors": {
+    "palette": {
+      "primary": "#022c22",
+      "primary_foreground": "#ffffff",
+      "secondary": "#f1f5f9",
+      "secondary_foreground": "#0f172a",
+      "accent": "#ea580c",
+      "accent_foreground": "#ffffff",
+      "background": "#ffffff",
+      "foreground": "#020617",
+      "card": "#ffffff",
+      "card_foreground": "#020617",
+      "border": "#e2e8f0",
+      "input": "#e2e8f0",
+      "ring": "#022c22"
+    },
+    "custom_classes": {
+      "bg-ceramic": "bg-[#F8F9FA]",
+      "text-forest": "text-[#022c22]",
+      "bg-forest": "bg-[#022c22]"
+    }
+  },
+  "images": {
+    "hero_background": "https://images.unsplash.com/photo-1585649543966-8b3f478c50e8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzR8MHwxfHNlYXJjaHwzfHxsdXh1cnklMjBjYXIlMjBvbiUyMHJvYWQlMjBjaW5lbWF0aWMlMjBsaWdodGluZ3xlbnwwfHx8fDE3NzIwODQ4OTJ8MA&ixlib=rb-4.1.0&q=85",
+    "inventory": [
+      {
+        "id": "car-1",
+        "name": "Infiniti QX80 White",
+        "image": "https://images.unsplash.com/photo-1758411898215-fd378b500042?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDJ8MHwxfHNlYXJjaHwxfHx3aGl0ZSUyMHN1diUyMGNhciUyMGZyb250JTIwdmlldyUyMG91dGRvb3J8ZW58MHx8fHwxNzcyMDg0OTAzfDA&ixlib=rb-4.1.0&q=85",
+        "category": "SUV"
+      },
+      {
+        "id": "car-2",
+        "name": "Mercedes Benz Black",
+        "image": "https://images.pexels.com/photos/12070967/pexels-photo-12070967.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "category": "Sedan"
+      },
+      {
+        "id": "car-3",
+        "name": "Ferrari 458 Red",
+        "image": "https://images.unsplash.com/photo-1621707156632-6c2178138c01?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTF8MHwxfHNlYXJjaHwyfHxyZWQlMjBzcG9ydHMlMjBjYXIlMjByb2FkfGVufDB8fHx8MTc3MjA4NDkwN3ww&ixlib=rb-4.1.0&q=85",
+        "category": "Sports"
+      }
+    ],
+    "interior": "https://images.pexels.com/photos/25857424/pexels-photo-25857424.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+  },
+  "layout_strategies": {
+    "spacing": "Relaxed. Use p-8 or p-12 for section padding. p-6 for card internal padding.",
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "grid_system": {
+      "marketing": "Grid Mode A (Tetris) for features.",
+      "inventory": "Grid Mode B (High Density) for listings: grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8."
+    }
+  },
+  "components": {
+    "HeroSection": {
+      "description": "Full-height with dark overlay. Headline left-aligned, massive font (text-6xl+). Search bar floating at the bottom overlapping the hero and the next section.",
+      "elements": [
+        "Headline: 'DRIVE THE EXCEPTIONAL'",
+        "Subheadline: 'Curated inventory for the discerning driver.'",
+        "CTA: 'View Inventory' (Primary Button), 'Sell Your Car' (Secondary Button)"
+      ]
+    },
+    "CarCard": {
+      "style": "Clean, white card. No shadow by default, shadow-lg on hover. 1px border-slate-200.",
+      "elements": [
+        "Image: Aspect ratio 16/9, object-cover.",
+        "Title: Bold, Manrope font.",
+        "Specs Grid: 2x2 grid (Year, Fuel, KM, Transmission) with icons.",
+        "Price: Large, Teko font, Primary Color.",
+        "Action: 'View Details' button (Outline)."
+      ]
+    },
+    "AdminDashboard": {
+      "style": "Sidebar layout. Dense data tables.",
+      "features": ["Inventory Table", "Add Car Modal", "Enquiry List"]
+    }
+  },
+  "ui_enhancements": {
+    "motion": "Use framer-motion for staggered entrance of car cards. Hover lift on cards (-translate-y-1).",
+    "rounded": "rounded-none for a sharp, industrial feel OR rounded-lg for modern approachable. Decision: rounded-lg."
+  },
+  "universal_guidelines": [
+    "Don't make generic centered layouts.",
+    "Dark colors look good when used independently without gradients.",
+    "Use glass-morphism effects for the sticky navbar.",
+    "NEVER use AI assistant emojis.",
+    "Interactive elements MUST include data-testid.",
+    "Use 'sonner' for toasts.",
+    "Components MUST use named exports."
+  ]
+}
