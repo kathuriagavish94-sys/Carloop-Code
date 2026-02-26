@@ -49,11 +49,13 @@ export const Footer = () => {
               </li>
               <li className="flex items-center space-x-2">
                 <Mail className="h-4 w-4" />
-                <span>info@carloop.com</span>
+                <a href="mailto:Kathuria.gavish94@gmail.com" className="hover:text-white transition-colors">
+                  Kathuria.gavish94@gmail.com
+                </a>
               </li>
               <li className="flex items-start space-x-2">
                 <MapPin className="h-4 w-4 mt-1" />
-                <span>123 Auto Street, Delhi NCR, India</span>
+                <span>Plot number 1528, Sector - 45 Gurgaon</span>
               </li>
             </ul>
           </div>
