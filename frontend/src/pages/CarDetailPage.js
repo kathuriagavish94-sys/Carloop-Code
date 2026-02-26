@@ -182,10 +182,10 @@ export const CarDetailPage = () => {
             </div>
           </div>
 
-          {showEnquiryForm && (
-            <div className="border-t border-gray-200 p-8 bg-gray-50" data-testid="enquiry-form">
-              <h3 className="font-teko text-3xl font-bold text-forest uppercase mb-6">Send Enquiry</h3>
-              <form onSubmit={handleSubmitEnquiry} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {showCallbackForm && (
+            <div className="border-t border-gray-200 p-8 bg-gray-50" data-testid="callback-form">
+              <h3 className="font-teko text-3xl font-bold text-forest uppercase mb-6">Request A Call Back</h3>
+              <form onSubmit={handleSubmitCallback} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <input
                   type="text"
                   placeholder="Your Name"
@@ -193,44 +193,30 @@ export const CarDetailPage = () => {
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                   className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
-                  data-testid="enquiry-name-input"
-                />
-                <input
-                  type="email"
-                  placeholder="Your Email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
-                  data-testid="enquiry-email-input"
+                  data-testid="callback-name-input"
                 />
                 <input
                   type="tel"
-                  placeholder="Your Phone"
+                  placeholder="Your Mobile Number"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   required
+                  pattern="[0-9]{10}"
                   className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
-                  data-testid="enquiry-phone-input"
-                />
-                <textarea
-                  placeholder="Your Message"
-                  value={formData.message}
-                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  required
-                  rows="4"
-                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope md:col-span-2"
-                  data-testid="enquiry-message-input"
+                  data-testid="callback-phone-input"
                 />
                 <button
                   type="submit"
                   disabled={submitting}
                   className="md:col-span-2 px-6 py-3 bg-accent text-white rounded-lg hover:bg-[#d94d0a] transition-colors font-manrope font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-                  data-testid="enquiry-submit-button"
+                  data-testid="callback-submit-button"
                 >
-                  {submitting ? 'Submitting...' : 'Submit Enquiry'}
+                  {submitting ? 'Submitting...' : 'Submit Request'}
                 </button>
               </form>
+              <p className="mt-4 text-sm text-gray-600 font-manrope">
+                Our team will call you back within 2 hours during business hours.
+              </p>
             </div>
           )}
         </div>
