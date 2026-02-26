@@ -152,6 +152,42 @@ export const HomePage = () => {
           </div>
         </div>
       </section>
+
+      {testimonials.length > 0 && (
+        <section className="py-20 bg-ceramic" data-testid="testimonials-section">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="font-teko text-5xl font-bold text-forest uppercase tracking-wide mb-4">
+                What Our Customers Say
+              </h2>
+              <p className="font-manrope text-lg text-gray-600 max-w-2xl mx-auto">
+                Real experiences from our satisfied customers
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {testimonials.map((testimonial) => (
+                <div key={testimonial.id} className="bg-white rounded-lg overflow-hidden shadow-lg" data-testid={`testimonial-${testimonial.id}`}>
+                  <div className="aspect-video">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={`https://www.youtube.com/embed/${testimonial.video_id}`}
+                      title={`Testimonial by ${testimonial.customer_name}`}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  </div>
+                  <div className="p-4">
+                    <p className="font-manrope font-semibold text-gray-900">{testimonial.customer_name}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 };
