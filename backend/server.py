@@ -84,6 +84,7 @@ class Car(BaseModel):
     owners: Optional[int] = 1
     rto: Optional[str] = "DL"
     condition: Optional[str] = "Excellent"
+    status: Optional[str] = "Available"  # Available, Sold, Booked
     features: Optional[List[str]] = []
     specifications: Optional[dict] = {}
     is_featured: bool = False
