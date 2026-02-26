@@ -9,11 +9,13 @@ const API = `${BACKEND_URL}/api`;
 
 export const HomePage = () => {
   const [featuredCars, setFeaturedCars] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchFeaturedCars();
+    fetchTestimonials();
   }, []);
 
   const fetchFeaturedCars = async () => {
@@ -24,6 +26,15 @@ export const HomePage = () => {
       console.error('Error fetching featured cars:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTestimonials = async () => {
+    try {
+      const response = await axios.get(`${API}/testimonials?active_only=true`);
+      setTestimonials(response.data);
+    } catch (error) {
+      console.error('Error fetching testimonials:', error);
     }
   };
 
