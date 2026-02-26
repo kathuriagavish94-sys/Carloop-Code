@@ -52,6 +52,21 @@ class TokenResponse(BaseModel):
     token: str
     admin: dict
 
+class User(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    user_id: str
+    email: EmailStr
+    name: str
+    picture: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class UserSession(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    user_id: str
+    session_token: str
+    expires_at: datetime
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 class Car(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -60,11 +75,15 @@ class Car(BaseModel):
     year: int
     price: float
     image: str
+    gallery: Optional[List[str]] = []
     km_driven: int
     fuel_type: str
     transmission: str
+    owners: Optional[int] = 1
+    rto: Optional[str] = "DL"
     condition: Optional[str] = "Excellent"
     features: Optional[List[str]] = []
+    specifications: Optional[dict] = {}
     is_featured: bool = False
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
