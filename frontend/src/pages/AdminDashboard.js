@@ -28,6 +28,8 @@ export const AdminDashboard = () => {
     features: '',
     is_featured: false,
   });
+  const [uploadingCsv, setUploadingCsv] = useState(false);
+  const [csvResult, setCsvResult] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
