@@ -12,12 +12,10 @@ export const CarDetailPage = () => {
   const navigate = useNavigate();
   const [car, setCar] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showEnquiryForm, setShowEnquiryForm] = useState(false);
+  const [showCallbackForm, setShowCallbackForm] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     phone: '',
-    message: '',
   });
   const [submitting, setSubmitting] = useState(false);
 
