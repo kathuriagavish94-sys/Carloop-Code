@@ -119,6 +119,9 @@ export const AdminDashboard = () => {
       price: parseFloat(carFormData.price),
       year: parseInt(carFormData.year),
       km_driven: parseInt(carFormData.km_driven),
+      gallery: carFormData.gallery
+        ? carFormData.gallery.split('|').map((url) => url.trim()).filter(Boolean)
+        : [],
       features: carFormData.features
         .split(',')
         .map((f) => f.trim())
