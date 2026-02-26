@@ -140,6 +140,20 @@ class EnquiryCreate(BaseModel):
     message: str
     car_id: Optional[str] = None
 
+class Testimonial(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    customer_name: str
+    youtube_url: str
+    video_id: str
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class TestimonialCreate(BaseModel):
+    customer_name: str
+    youtube_url: str
+    is_active: bool = True
+
 def create_token(admin_id: str, email: str) -> str:
     payload = {
         'id': admin_id,
