@@ -103,6 +103,7 @@ class CarCreate(BaseModel):
     owners: Optional[int] = 1
     rto: Optional[str] = "DL"
     condition: Optional[str] = "Excellent"
+    status: Optional[str] = "Available"
     features: Optional[List[str]] = []
     specifications: Optional[dict] = {}
     is_featured: bool = False
@@ -120,6 +121,7 @@ class CarUpdate(BaseModel):
     owners: Optional[int] = None
     rto: Optional[str] = None
     condition: Optional[str] = None
+    status: Optional[str] = None
     features: Optional[List[str]] = None
     specifications: Optional[dict] = None
     is_featured: Optional[bool] = None
