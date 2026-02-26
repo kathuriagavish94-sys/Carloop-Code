@@ -853,6 +853,7 @@ async def startup():
                 owners=1,
                 rto="MH12",
                 condition="Excellent",
+                status="Available",
                 features=["Panoramic Sunroof", "ADAS", "360 Camera", "Wireless Charger", "Premium Audio", "Ventilated Seats"],
                 specifications={
                     "engine": "2.2L Diesel",
@@ -862,6 +863,58 @@ async def startup():
                     "seats": 7,
                     "body_type": "SUV",
                     "color": "Black"
+                },
+                is_featured=False
+            ),
+            CarCreate(
+                make="Honda",
+                model="Civic",
+                year=2021,
+                price=1800000,
+                image="https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800",
+                gallery=[],
+                km_driven=28000,
+                fuel_type="Petrol",
+                transmission="Automatic",
+                owners=1,
+                rto="DL5C",
+                condition="Excellent",
+                status="Sold",
+                features=["Sunroof", "Leather Seats", "Premium Audio"],
+                specifications={
+                    "engine": "1.8L Petrol",
+                    "power": "141 bhp",
+                    "torque": "174 Nm",
+                    "mileage": "16.5 kmpl",
+                    "seats": 5,
+                    "body_type": "Sedan",
+                    "color": "Silver"
+                },
+                is_featured=False
+            ),
+            CarCreate(
+                make="Kia",
+                model="Seltos GTX Plus",
+                year=2022,
+                price=1650000,
+                image="https://images.unsplash.com/photo-1616422285623-13ff0162193c?w=800",
+                gallery=[],
+                km_driven=20000,
+                fuel_type="Petrol",
+                transmission="Automatic",
+                owners=1,
+                rto="HR55",
+                condition="Excellent",
+                status="Booked",
+                features=["Sunroof", "Ventilated Seats", "360 Camera", "Wireless Charger"],
+                specifications={
+                    "engine": "1.4L Turbo Petrol",
+                    "power": "140 bhp",
+                    "torque": "242 Nm",
+                    "mileage": "16.8 kmpl",
+                    "seats": 5,
+                    "body_type": "SUV",
+                    "color": "Red"
                 },
                 is_featured=False
             )
