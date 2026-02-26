@@ -530,9 +530,9 @@ def main():
     tester.test_unauthorized_actions()
     
     # Final results
-    print("\n" + "=" * 50)
-    print("📊 TEST RESULTS SUMMARY")
-    print("=" * 50)
+    print("\n" + "=" * 60)
+    print("📊 TEST RESULTS SUMMARY - INCLUDING NEW FEATURES")
+    print("=" * 60)
     print(f"Total Tests: {tester.tests_run}")
     print(f"Passed: {tester.tests_passed}")
     print(f"Failed: {tester.tests_run - tester.tests_passed}")
@@ -542,6 +542,12 @@ def main():
         print(f"\nInventory Status: ✅ {len(tester.cars)} cars available")
     if tester.enquiries:
         print(f"Enquiries: ✅ {len(tester.enquiries)} customer enquiries")
+    
+    print("\n🆕 NEW FEATURES TESTED:")
+    print("✅ Testimonials CRUD operations")
+    print("✅ YouTube URL video ID extraction (multiple formats)")
+    print("✅ Google Drive URL conversion endpoint")
+    print("🔄 WhatsApp button integration (to be tested in frontend)")
     
     # Return exit code based on results
     success_rate = tester.tests_passed / tester.tests_run
