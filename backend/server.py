@@ -5,6 +5,7 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
+import asyncio
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
@@ -15,6 +16,7 @@ from passlib.context import CryptContext
 import httpx
 import csv
 import io
+import resend
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -29,6 +31,14 @@ api_router = APIRouter(prefix="/api")
 JWT_SECRET = os.environ.get('JWT_SECRET', 'carloop-secret-key-2026')
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION_HOURS = 24
+
+# Resend Email Configuration
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'Kathuria.gavish94@gmail.com')
+
+if RESEND_API_KEY:
+    resend.api_key = RESEND_API_KEY
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
@@ -542,10 +552,16 @@ async def get_enquiries(admin: dict = Depends(verify_token)):
 @api_router.post("/callback-requests", response_model=CallbackRequest)
 async def create_callback_request(callback_data: CallbackRequestCreate):
     car_details = ""
+    car_price = ""
     if callback_data.car_id:
         car = await db.cars.find_one({"id": callback_data.car_id}, {"_id": 0})
         if car:
             car_details = f"{car.get('make')} {car.get('model')} ({car.get('year')})"
+            price = car.get('price', 0)
+            if price >= 100000:
+                car_price = f"₹{price/100000:.2f} Lakh"
+            else:
+                car_price = f"₹{price:,}"
     
     callback = CallbackRequest(
         name=callback_data.name,
@@ -556,6 +572,57 @@ async def create_callback_request(callback_data: CallbackRequestCreate):
     doc = callback.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     await db.callback_requests.insert_one(doc)
+    
+    # Send email notification to admin
+    if RESEND_API_KEY:
+        try:
+            html_content = f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background-color: #1f2937; color: white; padding: 20px; text-align: center;">
+                    <h1 style="margin: 0; font-size: 24px;">TruVant - New Callback Request</h1>
+                </div>
+                <div style="padding: 30px; background-color: #f9fafb;">
+                    <h2 style="color: #374151; margin-top: 0;">Customer Details</h2>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Name:</td>
+                            <td style="padding: 10px 0; font-weight: bold; color: #111827;">{callback_data.name}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Phone:</td>
+                            <td style="padding: 10px 0; font-weight: bold; color: #111827;">{callback_data.phone}</td>
+                        </tr>
+                        {f'<tr><td style="padding: 10px 0; color: #6b7280;">Interested In:</td><td style="padding: 10px 0; font-weight: bold; color: #ea580c;">{car_details}</td></tr>' if car_details else ''}
+                        {f'<tr><td style="padding: 10px 0; color: #6b7280;">Price:</td><td style="padding: 10px 0; font-weight: bold; color: #111827;">{car_price}</td></tr>' if car_price else ''}
+                    </table>
+                    <div style="margin-top: 20px; padding: 15px; background-color: #fef3c7; border-radius: 8px;">
+                        <p style="margin: 0; color: #92400e; font-size: 14px;">
+                            Please call the customer back within 2 hours during business hours.
+                        </p>
+                    </div>
+                </div>
+                <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
+                    TruVant - Your Trusted Partner for Pre-Owned Vehicles
+                </div>
+            </div>
+            """
+            
+            params = {
+                "from": SENDER_EMAIL,
+                "to": [ADMIN_EMAIL],
+                "subject": f"New Callback Request from {callback_data.name}" + (f" - {car_details}" if car_details else ""),
+                "html": html_content
+            }
+            
+            # Run sync SDK in thread to keep FastAPI non-blocking
+            await asyncio.to_thread(resend.Emails.send, params)
+            logging.info(f"Callback notification email sent for {callback_data.name}")
+        except Exception as e:
+            # Log error but don't fail the request
+            logging.error(f"Failed to send callback notification email: {str(e)}")
+    else:
+        logging.info(f"Email notification skipped (RESEND_API_KEY not configured). Callback from {callback_data.name} saved.")
+    
     return callback
 
 @api_router.get("/callback-requests", response_model=List[CallbackRequest])

@@ -4,6 +4,7 @@ import { Toaster } from 'sonner';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { WhatsAppButton } from './components/WhatsAppButton';
+import { MobileBottomBar } from './components/MobileBottomBar';
 import { HomePage } from './pages/HomePage';
 import { InventoryPage } from './pages/InventoryPage';
 import { CarDetailPage } from './pages/CarDetailPage';
@@ -47,6 +48,7 @@ function AppRouter() {
       </Routes>
       <Footer />
       <WhatsAppButton />
+      <MobileBottomBar />
     </>
   );
 }

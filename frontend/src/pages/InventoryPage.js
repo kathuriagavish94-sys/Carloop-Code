@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { CarCard } from '../components/CarCard';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { PremiumCarCard } from '../components/PremiumCarCard';
+import { Search, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -24,6 +24,7 @@ export const InventoryPage = () => {
     phone: '',
   });
   const [submitting, setSubmitting] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   useEffect(() => {
     fetchCars();
@@ -97,28 +98,44 @@ export const InventoryPage = () => {
     }
   };
 
+  const clearFilters = () => {
+    setSearchTerm('');
+    setFilters({
+      fuelType: 'all',
+      transmission: 'all',
+      priceRange: 'all',
+    });
+  };
+
+  const hasActiveFilters = searchTerm || filters.fuelType !== 'all' || filters.transmission !== 'all' || filters.priceRange !== 'all';
+
   return (
-    <div className="min-h-screen bg-ceramic py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="font-teko text-6xl font-bold text-forest uppercase tracking-wide mb-4" data-testid="inventory-title">
-            Our Inventory
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Header */}
+      <section className="bg-gray-900 py-16 md:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="font-outfit font-bold text-4xl md:text-5xl lg:text-6xl text-white mb-4" data-testid="inventory-title">
+            Our <span className="text-orange-500">Inventory</span>
           </h1>
-          <p className="font-manrope text-lg text-gray-600">
-            Browse our complete collection of premium pre-owned vehicles.
+          <p className="font-dmsans text-lg md:text-xl text-gray-300 max-w-2xl">
+            Browse our complete collection of premium pre-owned vehicles. Each car is thoroughly inspected and verified.
           </p>
         </div>
+      </section>
 
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8" data-testid="filter-section">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Filter Section */}
+      <section className="sticky top-[80px] z-40 bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          {/* Desktop Filters */}
+          <div className="hidden md:grid grid-cols-4 gap-4" data-testid="filter-section">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search by make or model..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent font-dmsans text-gray-900"
                 data-testid="search-input"
               />
             </div>
@@ -126,7 +143,7 @@ export const InventoryPage = () => {
             <select
               value={filters.fuelType}
               onChange={(e) => setFilters({ ...filters, fuelType: e.target.value })}
-              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
+              className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent font-dmsans text-gray-900 appearance-none cursor-pointer"
               data-testid="fuel-filter"
             >
               <option value="all">All Fuel Types</option>
@@ -139,7 +156,7 @@ export const InventoryPage = () => {
             <select
               value={filters.transmission}
               onChange={(e) => setFilters({ ...filters, transmission: e.target.value })}
-              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
+              className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent font-dmsans text-gray-900 appearance-none cursor-pointer"
               data-testid="transmission-filter"
             >
               <option value="all">All Transmissions</option>
@@ -150,62 +167,143 @@ export const InventoryPage = () => {
             <select
               value={filters.priceRange}
               onChange={(e) => setFilters({ ...filters, priceRange: e.target.value })}
-              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
+              className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent font-dmsans text-gray-900 appearance-none cursor-pointer"
               data-testid="price-filter"
             >
               <option value="all">All Prices</option>
-              <option value="0-1000000">Under 10 Lakh</option>
+              <option value="0-500000">Under 5 Lakh</option>
+              <option value="500000-1000000">5-10 Lakh</option>
               <option value="1000000-2000000">10-20 Lakh</option>
               <option value="2000000-5000000">20-50 Lakh</option>
               <option value="5000000-99999999">Above 50 Lakh</option>
             </select>
           </div>
+
+          {/* Mobile Filter Button */}
+          <div className="md:hidden flex items-center gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search cars..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 font-dmsans"
+              />
+            </div>
+            <button
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="flex items-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-xl font-dmsans font-medium"
+            >
+              <SlidersHorizontal className="h-5 w-5" />
+              Filters
+            </button>
+          </div>
+
+          {/* Mobile Filters Dropdown */}
+          {showMobileFilters && (
+            <div className="md:hidden mt-4 p-4 bg-gray-50 rounded-xl space-y-3">
+              <select
+                value={filters.fuelType}
+                onChange={(e) => setFilters({ ...filters, fuelType: e.target.value })}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-dmsans"
+              >
+                <option value="all">All Fuel Types</option>
+                <option value="Petrol">Petrol</option>
+                <option value="Diesel">Diesel</option>
+                <option value="CNG">CNG</option>
+                <option value="Electric">Electric</option>
+              </select>
+              <select
+                value={filters.transmission}
+                onChange={(e) => setFilters({ ...filters, transmission: e.target.value })}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-dmsans"
+              >
+                <option value="all">All Transmissions</option>
+                <option value="Manual">Manual</option>
+                <option value="Automatic">Automatic</option>
+              </select>
+              <select
+                value={filters.priceRange}
+                onChange={(e) => setFilters({ ...filters, priceRange: e.target.value })}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-dmsans"
+              >
+                <option value="all">All Prices</option>
+                <option value="0-500000">Under 5 Lakh</option>
+                <option value="500000-1000000">5-10 Lakh</option>
+                <option value="1000000-2000000">10-20 Lakh</option>
+                <option value="2000000-5000000">20-50 Lakh</option>
+                <option value="5000000-99999999">Above 50 Lakh</option>
+              </select>
+            </div>
+          )}
+
+          {/* Active Filters & Clear */}
+          {hasActiveFilters && (
+            <div className="mt-4 flex items-center gap-2">
+              <span className="font-dmsans text-sm text-gray-600">Active filters:</span>
+              <button
+                onClick={clearFilters}
+                className="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-sm font-dmsans font-medium hover:bg-orange-200 transition-colors"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
         </div>
+      </section>
 
-        {loading ? (
-          <div className="text-center py-12" data-testid="loading-spinner">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-          </div>
-        ) : filteredCars.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg" data-testid="no-cars-message">
-            <p className="font-manrope text-lg text-gray-600">No vehicles found matching your criteria.</p>
-          </div>
-        ) : (
-          <>
-            <div className="mb-4 font-manrope text-gray-600" data-testid="cars-count">
-              Showing {filteredCars.length} {filteredCars.length === 1 ? 'vehicle' : 'vehicles'}
+      {/* Results Section */}
+      <section className="py-8 md:py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {loading ? (
+            <div className="text-center py-16" data-testid="loading-spinner">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent"></div>
+              <p className="mt-4 font-dmsans text-gray-600">Loading vehicles...</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" data-testid="inventory-grid">
-              {filteredCars.map((car) => (
-                <div key={car.id} className="relative">
-                  <CarCard car={car} />
-                  {car.status === 'Available' && (
-                    <button
-                      onClick={() => handleCallbackRequest(car)}
-                      className="mt-4 w-full px-4 py-3 bg-accent text-white rounded-lg hover:bg-[#d94d0a] transition-colors font-manrope font-semibold"
-                      data-testid={`callback-btn-${car.id}`}
-                    >
-                      Get A Call Back
-                    </button>
-                  )}
-                </div>
-              ))}
+          ) : filteredCars.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-2xl shadow-sm" data-testid="no-cars-message">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="font-outfit font-semibold text-xl text-gray-900 mb-2">No vehicles found</h3>
+              <p className="font-dmsans text-gray-600 mb-4">Try adjusting your filters or search criteria.</p>
+              <button
+                onClick={clearFilters}
+                className="px-6 py-2 bg-orange-500 text-white rounded-full font-dmsans font-medium hover:bg-orange-600 transition-colors"
+              >
+                Clear Filters
+              </button>
             </div>
-          </>
-        )}
-      </div>
+          ) : (
+            <>
+              <div className="mb-6 flex items-center justify-between">
+                <p className="font-dmsans text-gray-600" data-testid="cars-count">
+                  Showing <span className="font-semibold text-gray-900">{filteredCars.length}</span> {filteredCars.length === 1 ? 'vehicle' : 'vehicles'}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="inventory-grid">
+                {filteredCars.map((car) => (
+                  <PremiumCarCard key={car.id} car={car} onCallbackRequest={handleCallbackRequest} />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </section>
 
+      {/* Callback Modal */}
       {showCallbackModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" data-testid="callback-modal">
-          <div className="bg-white rounded-lg max-w-md w-full">
-            <div className="flex justify-between items-center p-6 border-b">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50" data-testid="callback-modal">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl">
+            <div className="flex justify-between items-start p-6 border-b border-gray-100">
               <div>
-                <h3 className="font-teko text-3xl font-bold text-forest uppercase">
+                <h3 className="font-outfit font-bold text-2xl text-gray-900">
                   Request A Call Back
                 </h3>
                 {selectedCar && (
-                  <p className="font-manrope text-sm text-gray-600 mt-1">
-                    For: {selectedCar.make} {selectedCar.model} ({selectedCar.year})
+                  <p className="font-dmsans text-sm text-gray-600 mt-1">
+                    For: <span className="font-medium text-orange-500">{selectedCar.make} {selectedCar.model} ({selectedCar.year})</span>
                   </p>
                 )}
               </div>
@@ -215,29 +313,29 @@ export const InventoryPage = () => {
                   setSelectedCar(null);
                   setCallbackForm({ name: '', phone: '' });
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
                 data-testid="close-callback-modal"
               >
-                <X className="h-6 w-6" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
             <form onSubmit={handleSubmitCallback} className="p-6 space-y-4" data-testid="callback-form">
               <div>
-                <label className="block font-manrope font-semibold text-gray-700 mb-2">Your Name</label>
+                <label className="block font-dmsans font-medium text-gray-700 mb-2">Your Name</label>
                 <input
                   type="text"
                   placeholder="Enter your name"
                   value={callbackForm.name}
                   onChange={(e) => setCallbackForm({ ...callbackForm, name: e.target.value })}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent font-dmsans"
                   data-testid="callback-name-input"
                 />
               </div>
 
               <div>
-                <label className="block font-manrope font-semibold text-gray-700 mb-2">Mobile Number</label>
+                <label className="block font-dmsans font-medium text-gray-700 mb-2">Mobile Number</label>
                 <input
                   type="tel"
                   placeholder="Enter 10-digit mobile number"
@@ -246,17 +344,17 @@ export const InventoryPage = () => {
                   required
                   pattern="[0-9]{10}"
                   maxLength="10"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent font-dmsans"
                   data-testid="callback-phone-input"
                 />
-                <p className="text-xs text-gray-500 mt-1">We'll call you back within 2 hours during business hours</p>
+                <p className="text-xs text-gray-500 mt-2">We'll call you back within 2 hours during business hours</p>
               </div>
 
-              <div className="flex space-x-4 pt-4">
+              <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 px-6 py-3 bg-primary text-white rounded-lg hover:bg-[#01352a] transition-colors font-manrope font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-6 py-3 bg-orange-500 text-white rounded-full font-dmsans font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   data-testid="callback-submit-button"
                 >
                   {submitting ? 'Submitting...' : 'Submit Request'}
@@ -268,7 +366,7 @@ export const InventoryPage = () => {
                     setSelectedCar(null);
                     setCallbackForm({ name: '', phone: '' });
                   }}
-                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-manrope font-bold"
+                  className="flex-1 px-6 py-3 border-2 border-gray-200 text-gray-700 rounded-full font-dmsans font-semibold hover:bg-gray-50 transition-colors"
                   data-testid="callback-cancel-button"
                 >
                   Cancel
