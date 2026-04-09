@@ -27,42 +27,45 @@ Create a complete car dealer website that includes a homepage, inventory page, a
 - [x] Sold/Booked status tiles on car cards
 - [x] Testimonials with YouTube video embeds
 
-### Phase 3: TruVant Premium Homepage Redesign (DONE - April 6, 2026)
+### Phase 3: TruVant Premium Homepage Redesign (DONE)
 - [x] Complete rebrand from "Carloop" to "TruVant"
 - [x] Premium "Spinny-like" homepage design with 7 sections
 - [x] Updated Footer with TruVant branding
 - [x] Custom Tailwind classes in index.css
 - [x] Outfit + DM Sans typography
 
-### Phase 4: Premium Styling for All Pages (DONE - April 6, 2026)
-- [x] InventoryPage redesign:
-  - Dark header with "Our Inventory" title
-  - Sticky filter bar with search and dropdowns
-  - Mobile-responsive filters with collapsible panel
-  - Premium car cards using PremiumCarCard component
-- [x] CarDetailPage redesign:
-  - Gallery with thumbnail navigation
-  - Quick specs cards with orange icons
-  - Trust badges (Verified, Owner count, RTO)
-  - Features list with green checkmarks
-  - Share button functionality
-- [x] ContactPage redesign:
-  - Dark hero section
-  - Colored contact info cards (orange, green, blue, purple)
-  - "Need Immediate Help?" dark call-to-action section
-  - Google Maps embed
-  - Success state animation for form submission
+### Phase 4: Premium Styling for All Pages (DONE)
+- [x] InventoryPage redesign with dark header, sticky filters
+- [x] CarDetailPage redesign with gallery, specs cards, trust badges
+- [x] ContactPage redesign with colored info cards, dark help section
 
-### Phase 5: Email Notifications & Mobile UX (DONE - April 6, 2026)
+### Phase 5: Email Notifications & Mobile UX (DONE)
 - [x] Real email sending for callbacks using Resend API
-  - HTML email template with car details
-  - Non-blocking async email dispatch
-  - Graceful fallback if API key not configured
-- [x] Mobile sticky bottom bar component
-  - Call button (blue)
-  - WhatsApp button (green)
-  - Glassmorphism design
-  - Shows on Home, Inventory, Contact pages
+- [x] Mobile sticky bottom bar component (Call, WhatsApp buttons)
+
+### Phase 6: Customer Lead Capture & Admin Recovery (DONE - April 9, 2026)
+- [x] **Customer Lead Capture Modal**
+  - Opens when user clicks "Login" button
+  - Captures: Name, Mobile (10-digit validation), Email (required)
+  - Optional: Budget Range, Interested Car Type
+  - Saves to `customer_leads` collection
+  - Then redirects to Google Auth
+- [x] **Circular TruVant Logo**
+  - CircularLogo component with white background, soft shadow
+  - Applied to: Navbar, Footer, Admin Login, Admin Dashboard
+  - TruVant brand colors: Primary #0F172A, Accent #2563EB
+- [x] **Admin Forgot Password Flow**
+  - "Forgot Password?" link on login page
+  - Password reset email (requires RESEND_API_KEY)
+  - Token-based reset with expiry
+- [x] **New Default Admin**
+  - Email: admin@truvant.com
+  - Password: Admin@123
+- [x] **Admin Customer Leads Section**
+  - New "Customer Leads" tab in Admin Dashboard
+  - Search by name, email, mobile
+  - Filter by source
+  - Export CSV functionality
 
 ## Database Schema
 - **cars**: make, model, year, price, mileage, fuel_type, transmission, image_url, gallery_urls, features, specifications, is_featured, status
@@ -70,6 +73,8 @@ Create a complete car dealer website that includes a homepage, inventory page, a
 - **enquiries**: name, email, phone, message
 - **callbacks**: name, phone, car_id, car_details, status
 - **testimonials**: customer_name, youtube_url, video_id, is_active
+- **customer_leads**: name, email, mobile, budget, car_interest, source, created_at
+- **password_reset_tokens**: email, token, expires_at, used
 
 ## API Endpoints
 - `GET/POST /api/cars` - Car CRUD
@@ -80,10 +85,16 @@ Create a complete car dealer website that includes a homepage, inventory page, a
 - `POST /api/callbacks` - Callback requests (with email notification)
 - `POST /api/enquiries` - Contact form submissions
 - `GET/POST /api/testimonials` - Testimonials
+- `POST /api/customer-leads` - Create customer lead
+- `GET /api/customer-leads` - List leads (admin auth required)
+- `GET /api/customer-leads/export` - Export leads as CSV
+- `POST /api/admin/forgot-password` - Request password reset
+- `POST /api/admin/reset-password` - Reset password with token
+- `GET /api/admin/verify-reset-token` - Verify reset token
 
 ## Admin Credentials
-- Email: admin@carloop.com
-- Password: admin123
+- **New (TruVant)**: admin@truvant.com / Admin@123
+- **Legacy (Carloop)**: admin@carloop.com / admin123
 
 ## Environment Variables Required
 ```
@@ -96,15 +107,21 @@ ADMIN_EMAIL=Kathuria.gavish94@gmail.com
 ```
 
 ## Testing Results
-- Backend: 100% (18/18 tests passed)
+- Backend: 100% (19/19 tests passed)
 - Frontend: 100% functional
-- All pages verified on desktop and mobile
+- All 6 phases verified working
 
 ## Mocked Features
 - Email notifications require `RESEND_API_KEY` environment variable
-- If not configured, callbacks are saved but emails are logged only
+- If not configured, callbacks saved but emails logged only
+- Password reset tokens logged to console if no email API configured
 
 ## Key Files
+- `/app/frontend/src/components/LeadCaptureModal.js` - Lead capture modal
+- `/app/frontend/src/components/CircularLogo.js` - Circular logo component
+- `/app/frontend/src/pages/ForgotPasswordPage.js` - Forgot password
+- `/app/frontend/src/pages/ResetPasswordPage.js` - Reset password
+- `/app/frontend/src/pages/AdminCustomerLeads.js` - Leads management
 - `/app/frontend/src/pages/HomePage.js` - Premium homepage
 - `/app/frontend/src/pages/InventoryPage.js` - Redesigned inventory
 - `/app/frontend/src/pages/CarDetailPage.js` - Redesigned car details
@@ -114,15 +131,9 @@ ADMIN_EMAIL=Kathuria.gavish94@gmail.com
 - `/app/frontend/src/components/Footer.js` - TruVant footer
 - `/app/frontend/src/index.css` - Custom Tailwind classes
 - `/app/backend/server.py` - Main API server
-- `/app/design_guidelines.json` - TruVant design system
 
 ## Last Updated
-April 6, 2026 - Completed all 5 phases:
-1. Core Platform
-2. Enhanced Features  
-3. TruVant Premium Homepage Redesign
-4. Premium Styling for All Pages (Inventory, CarDetail, Contact)
-5. Email Notifications & Mobile UX
+April 9, 2026 - Completed Phase 6: Customer Lead Capture Modal, Circular TruVant Logo branding, Admin Forgot Password flow with new admin@truvant.com credentials, Admin Customer Leads section with search/filter/export.
 
 ## Future Enhancements (Optional)
 - [ ] Add "Compare Cars" feature
