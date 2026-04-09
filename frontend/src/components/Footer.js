@@ -1,21 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin } from 'lucide-react';
+import { CircularLogo } from './CircularLogo';
 
 export const Footer = () => {
   return (
-    <footer className="bg-forest text-white" data-testid="footer">
+    <footer className="bg-[#0F172A] text-white" data-testid="footer">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <div className="flex items-center mb-4">
-              <img 
-                src="https://customer-assets.emergentagent.com/job_carloop-dealer/artifacts/1p0vv1ry_Gemini_Generated_Image_sp7phhsp7phhsp7p.png" 
-                alt="TruVant" 
-                className="h-12 w-auto"
-              />
+            <div className="flex items-center gap-3 mb-4">
+              <CircularLogo size="small" />
+              <span className="font-outfit font-bold text-xl">TruVant</span>
             </div>
-            <p className="font-dmsans text-gray-300 text-sm">
+            <p className="font-dmsans text-gray-400 text-sm">
               Your trusted partner in finding the perfect pre-owned vehicle.
             </p>
           </div>

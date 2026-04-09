@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Star, X, Mail, Phone, Calendar } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, X, Mail, Phone, Calendar, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { AdminCustomerLeads } from './AdminCustomerLeads';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -355,6 +356,18 @@ export const AdminDashboard = () => {
               >
                 Testimonials ({testimonials.length})
               </button>
+              <button
+                onClick={() => setActiveTab('leads')}
+                className={`px-6 py-4 font-manrope font-semibold flex items-center gap-2 ${
+                  activeTab === 'leads'
+                    ? 'border-b-2 border-[#2563EB] text-[#2563EB]'
+                    : 'text-gray-600 hover:text-[#2563EB]'
+                }`}
+                data-testid="leads-tab"
+              >
+                <Users className="h-4 w-4" />
+                Customer Leads
+              </button>
             </nav>
           </div>
 
@@ -627,6 +640,10 @@ export const AdminDashboard = () => {
                   </div>
                 )}
               </div>
+            )}
+
+            {activeTab === 'leads' && (
+              <AdminCustomerLeads />
             )}
           </div>
         </div>

@@ -11,6 +11,8 @@ import { CarDetailPage } from './pages/CarDetailPage';
 import { ContactPage } from './pages/ContactPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { AuthCallback } from './pages/AuthCallback';
 import { CustomerDashboard } from './pages/CustomerDashboard';
 import './App.css';
@@ -37,6 +39,8 @@ function AppRouter() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/dashboard" element={<CustomerDashboard />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/admin/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/admin/reset-password" element={<ResetPasswordPage />} />
         <Route
           path="/admin"
           element={

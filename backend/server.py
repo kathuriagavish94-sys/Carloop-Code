@@ -181,6 +181,43 @@ class TestimonialCreate(BaseModel):
     youtube_url: str
     is_active: bool = True
 
+# Customer Leads Model
+class CustomerLead(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    email: EmailStr
+    mobile: str
+    budget: Optional[str] = None
+    car_interest: Optional[str] = None
+    source: str = "login_click"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CustomerLeadCreate(BaseModel):
+    name: str
+    email: EmailStr
+    mobile: str
+    budget: Optional[str] = None
+    car_interest: Optional[str] = None
+    source: str = "login_click"
+
+# Password Reset Token Model
+class PasswordResetToken(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    email: EmailStr
+    token: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    expires_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc) + timedelta(hours=1))
+    used: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
 def create_token(admin_id: str, email: str) -> str:
     payload = {
         'id': admin_id,
@@ -673,6 +710,185 @@ async def convert_drive_url_endpoint(request: Request):
     converted_url = convert_google_drive_url(url)
     return {"original": url, "converted": converted_url}
 
+# Customer Leads Endpoints
+@api_router.post("/customer-leads", response_model=CustomerLead)
+async def create_customer_lead(lead_data: CustomerLeadCreate):
+    lead = CustomerLead(**lead_data.model_dump())
+    doc = lead.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.customer_leads.insert_one(doc)
+    return lead
+
+@api_router.get("/customer-leads", response_model=List[CustomerLead])
+async def get_customer_leads(
+    admin: dict = Depends(verify_token),
+    search: Optional[str] = None,
+    source: Optional[str] = None
+):
+    query = {}
+    if search:
+        query["$or"] = [
+            {"name": {"$regex": search, "$options": "i"}},
+            {"email": {"$regex": search, "$options": "i"}},
+            {"mobile": {"$regex": search, "$options": "i"}}
+        ]
+    if source:
+        query["source"] = source
+    
+    leads = await db.customer_leads.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    for lead in leads:
+        if isinstance(lead.get('created_at'), str):
+            lead['created_at'] = datetime.fromisoformat(lead['created_at'])
+    return leads
+
+@api_router.get("/customer-leads/export")
+async def export_customer_leads(admin: dict = Depends(verify_token)):
+    leads = await db.customer_leads.find({}, {"_id": 0}).sort("created_at", -1).to_list(10000)
+    
+    csv_output = io.StringIO()
+    writer = csv.writer(csv_output)
+    writer.writerow(["Name", "Email", "Mobile", "Budget", "Car Interest", "Source", "Created At"])
+    
+    for lead in leads:
+        writer.writerow([
+            lead.get('name', ''),
+            lead.get('email', ''),
+            lead.get('mobile', ''),
+            lead.get('budget', ''),
+            lead.get('car_interest', ''),
+            lead.get('source', ''),
+            lead.get('created_at', '')
+        ])
+    
+    csv_content = csv_output.getvalue()
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=customer_leads_{datetime.now().strftime('%Y%m%d')}.csv"}
+    )
+
+# Admin Password Reset Endpoints
+@api_router.post("/admin/forgot-password")
+async def forgot_password(request_data: ForgotPasswordRequest):
+    admin = await db.admins.find_one({"email": request_data.email}, {"_id": 0})
+    
+    # Always return success to prevent email enumeration
+    if not admin:
+        return {"message": "If an account exists with this email, a password reset link has been sent."}
+    
+    # Create reset token
+    reset_token = PasswordResetToken(email=request_data.email)
+    doc = reset_token.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['expires_at'] = doc['expires_at'].isoformat()
+    await db.password_reset_tokens.insert_one(doc)
+    
+    # Send email with reset link
+    if RESEND_API_KEY:
+        try:
+            reset_link = f"{os.environ.get('FRONTEND_URL', 'https://carloop-dealer.preview.emergentagent.com')}/admin/reset-password?token={reset_token.token}"
+            
+            html_content = f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background-color: #0F172A; color: white; padding: 30px; text-align: center;">
+                    <h1 style="margin: 0; font-size: 28px;">TruVant Admin</h1>
+                    <p style="margin: 10px 0 0 0; color: #94a3b8;">Password Reset Request</p>
+                </div>
+                <div style="padding: 40px 30px; background-color: #f8fafc;">
+                    <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+                        Hello,<br><br>
+                        We received a request to reset your password. Click the button below to create a new password:
+                    </p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{reset_link}" style="display: inline-block; padding: 14px 32px; background-color: #2563EB; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                            Reset Password
+                        </a>
+                    </div>
+                    <p style="color: #6b7280; font-size: 14px;">
+                        This link will expire in 1 hour. If you didn't request this, please ignore this email.
+                    </p>
+                </div>
+                <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px; background-color: #f1f5f9;">
+                    TruVant - Your Trusted Partner for Pre-Owned Vehicles
+                </div>
+            </div>
+            """
+            
+            params = {
+                "from": SENDER_EMAIL,
+                "to": [request_data.email],
+                "subject": "TruVant Admin - Password Reset Request",
+                "html": html_content
+            }
+            
+            await asyncio.to_thread(resend.Emails.send, params)
+            logging.info(f"Password reset email sent to {request_data.email}")
+        except Exception as e:
+            logging.error(f"Failed to send password reset email: {str(e)}")
+    else:
+        logging.info(f"Password reset requested for {request_data.email}. Token: {reset_token.token}")
+    
+    return {"message": "If an account exists with this email, a password reset link has been sent."}
+
+@api_router.post("/admin/reset-password")
+async def reset_password(request_data: ResetPasswordRequest):
+    # Find valid token
+    token_doc = await db.password_reset_tokens.find_one({
+        "token": request_data.token,
+        "used": False
+    }, {"_id": 0})
+    
+    if not token_doc:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    
+    expires_at = token_doc['expires_at']
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Reset token has expired")
+    
+    # Update password
+    new_password_hash = pwd_context.hash(request_data.new_password)
+    result = await db.admins.update_one(
+        {"email": token_doc['email']},
+        {"$set": {"password_hash": new_password_hash}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Admin account not found")
+    
+    # Mark token as used
+    await db.password_reset_tokens.update_one(
+        {"token": request_data.token},
+        {"$set": {"used": True}}
+    )
+    
+    return {"message": "Password reset successfully"}
+
+@api_router.get("/admin/verify-reset-token")
+async def verify_reset_token(token: str):
+    token_doc = await db.password_reset_tokens.find_one({
+        "token": token,
+        "used": False
+    }, {"_id": 0})
+    
+    if not token_doc:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    
+    expires_at = token_doc['expires_at']
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Reset token has expired")
+    
+    return {"valid": True, "email": token_doc['email']}
+
 app.include_router(api_router)
 
 app.add_middleware(
@@ -691,6 +907,7 @@ logger = logging.getLogger(__name__)
 
 @app.on_event("startup")
 async def startup():
+    # Create default admin admin@carloop.com (legacy)
     admin_exists = await db.admins.find_one({"email": "admin@carloop.com"})
     if not admin_exists:
         admin = Admin(
@@ -702,6 +919,19 @@ async def startup():
         doc['created_at'] = doc['created_at'].isoformat()
         await db.admins.insert_one(doc)
         logger.info("Created default admin: admin@carloop.com / admin123")
+    
+    # Create new default admin admin@truvant.com
+    truvant_admin_exists = await db.admins.find_one({"email": "admin@truvant.com"})
+    if not truvant_admin_exists:
+        admin = Admin(
+            email="admin@truvant.com",
+            password_hash=pwd_context.hash("Admin@123"),
+            name="TruVant Admin"
+        )
+        doc = admin.model_dump()
+        doc['created_at'] = doc['created_at'].isoformat()
+        await db.admins.insert_one(doc)
+        logger.info("Created TruVant admin: admin@truvant.com / Admin@123")
     
     car_count = await db.cars.count_documents({})
     if car_count == 0:
