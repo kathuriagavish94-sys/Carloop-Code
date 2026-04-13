@@ -5,7 +5,7 @@ import { PremiumCarCard } from '../components/PremiumCarCard';
 import { 
   Search, Shield, FileCheck, Truck, CreditCard, 
   CheckCircle2, Award, Clock, HeadphonesIcon, TrendingUp,
-  ChevronRight, Star
+  ChevronRight, Star, MapPin, Heart
 } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -13,12 +13,16 @@ const API = `${BACKEND_URL}/api`;
 
 export const HomePage = () => {
   const [featuredCars, setFeaturedCars] = useState([]);
+  const [recentlySoldCars, setRecentlySoldCars] = useState([]);
+  const [deliveries, setDeliveries] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchFeaturedCars();
+    fetchRecentlySoldCars();
+    fetchDeliveries();
     fetchTestimonials();
   }, []);
 
@@ -30,6 +34,24 @@ export const HomePage = () => {
       console.error('Error fetching featured cars:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRecentlySoldCars = async () => {
+    try {
+      const response = await axios.get(`${API}/cars/recently-sold?limit=4`);
+      setRecentlySoldCars(response.data);
+    } catch (error) {
+      console.error('Error fetching recently sold cars:', error);
+    }
+  };
+
+  const fetchDeliveries = async () => {
+    try {
+      const response = await axios.get(`${API}/delivery-images?limit=6`);
+      setDeliveries(response.data);
+    } catch (error) {
+      console.error('Error fetching deliveries:', error);
     }
   };
 
@@ -65,6 +87,12 @@ export const HomePage = () => {
     { label: 'SUV Under Budget', image: 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400' },
     { label: 'Automatic Cars', image: 'https://images.unsplash.com/photo-1617531653520-bd466115490d?w=400' }
   ];
+
+  const formatPrice = (price) => {
+    if (price >= 10000000) return `₹${(price / 10000000).toFixed(2)} Cr`;
+    if (price >= 100000) return `₹${(price / 100000).toFixed(2)} L`;
+    return `₹${price.toLocaleString('en-IN')}`;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -199,6 +227,114 @@ export const HomePage = () => {
           </div>
         </div>
       </section>
+
+      {/* Recent Deliveries Section - "Families Catered So Far.." */}
+      {deliveries.length > 0 && (
+        <section className="py-20 bg-white" data-testid="deliveries-section">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="font-bold text-4xl md:text-5xl text-gray-900 mb-4">
+                Families Catered <span className="text-orange-500">So Far..</span>
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Happy moments from our recent deliveries
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {deliveries.map((delivery) => (
+                <div 
+                  key={delivery.id}
+                  className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100"
+                  data-testid={`delivery-card-${delivery.id}`}
+                >
+                  <div className="aspect-[4/3] overflow-hidden relative">
+                    <img
+                      src={delivery.image_url}
+                      alt={`${delivery.customer_name} - ${delivery.car_name}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                      <div className="flex items-center space-x-2 text-white">
+                        <Heart className="h-4 w-4 text-red-500 fill-red-500" />
+                        <span className="font-dmsans text-sm">Happy Customer</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-outfit font-semibold text-gray-900 mb-1">
+                      {delivery.car_name}
+                    </h3>
+                    <p className="font-dmsans text-sm text-gray-600 mb-2">
+                      Delivered to {delivery.customer_name}
+                    </p>
+                    <div className="flex items-center text-gray-500 text-sm">
+                      <MapPin className="h-4 w-4 mr-1" />
+                      <span className="font-dmsans">{delivery.delivery_location}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Recently Sold/Booked Cars Section */}
+      {recentlySoldCars.length > 0 && (
+        <section className="py-20 bg-gray-50" data-testid="recently-sold-section">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="font-bold text-4xl md:text-5xl text-gray-900 mb-4">
+                Recently <span className="text-orange-500">Sold</span> Cars
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                These cars found their new homes. More coming soon!
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {recentlySoldCars.map((car) => (
+                <div 
+                  key={car.id}
+                  className="group bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 opacity-80"
+                  data-testid={`sold-car-${car.id}`}
+                >
+                  <div className="aspect-[4/3] overflow-hidden relative">
+                    <img
+                      src={car.image}
+                      alt={`${car.make} ${car.model}`}
+                      className="w-full h-full object-cover grayscale"
+                      loading="lazy"
+                    />
+                    {/* Status Badge */}
+                    <div className={`absolute top-4 left-4 px-4 py-2 rounded-lg font-bold text-sm text-white shadow-lg ${
+                      car.status === 'Sold' ? 'bg-red-600' : 'bg-yellow-500'
+                    }`}>
+                      {car.status.toUpperCase()}
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-outfit font-semibold text-gray-900 mb-1 truncate">
+                      {car.year} {car.make} {car.model}
+                    </h3>
+                    <p className="font-outfit font-bold text-xl text-gray-500 line-through">
+                      {formatPrice(car.price)}
+                    </p>
+                    <button
+                      disabled
+                      className="w-full mt-3 py-2 bg-gray-200 text-gray-500 rounded-full font-dmsans font-medium cursor-not-allowed"
+                    >
+                      {car.status === 'Sold' ? 'SOLD OUT' : 'BOOKED'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Why Buy From Us */}
       <section className="py-20 bg-white">

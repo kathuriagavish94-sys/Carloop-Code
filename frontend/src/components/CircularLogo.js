@@ -11,13 +11,14 @@ export const CircularLogo = ({ size = 'default', className = '' }) => {
 
   return (
     <div 
-      className={`${sizeClasses[size]} rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center overflow-hidden ${className}`}
+      className={`${sizeClasses[size]} rounded-full overflow-hidden shadow-md border border-gray-100 ${className}`}
       data-testid="circular-logo"
     >
       <img 
         src={logoSrc}
         alt="TruVant"
-        className="w-[85%] h-[85%] object-contain"
+        className="w-full h-full object-cover"
+        style={{ borderRadius: '50%' }}
       />
     </div>
   );

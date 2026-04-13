@@ -16,6 +16,7 @@ export const InventoryPage = () => {
     fuelType: 'all',
     transmission: 'all',
     priceRange: 'all',
+    status: 'all',
   });
   const [showCallbackModal, setShowCallbackModal] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
@@ -69,6 +70,10 @@ export const InventoryPage = () => {
       filtered = filtered.filter((car) => car.price >= min && car.price <= max);
     }
 
+    if (filters.status !== 'all') {
+      filtered = filtered.filter((car) => car.status === filters.status);
+    }
+
     setFilteredCars(filtered);
   };
 
@@ -104,10 +109,11 @@ export const InventoryPage = () => {
       fuelType: 'all',
       transmission: 'all',
       priceRange: 'all',
+      status: 'all',
     });
   };
 
-  const hasActiveFilters = searchTerm || filters.fuelType !== 'all' || filters.transmission !== 'all' || filters.priceRange !== 'all';
+  const hasActiveFilters = searchTerm || filters.fuelType !== 'all' || filters.transmission !== 'all' || filters.priceRange !== 'all' || filters.status !== 'all';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -127,7 +133,7 @@ export const InventoryPage = () => {
       <section className="sticky top-[80px] z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {/* Desktop Filters */}
-          <div className="hidden md:grid grid-cols-4 gap-4" data-testid="filter-section">
+          <div className="hidden md:grid grid-cols-5 gap-4" data-testid="filter-section">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
@@ -176,6 +182,18 @@ export const InventoryPage = () => {
               <option value="1000000-2000000">10-20 Lakh</option>
               <option value="2000000-5000000">20-50 Lakh</option>
               <option value="5000000-99999999">Above 50 Lakh</option>
+            </select>
+
+            <select
+              value={filters.status}
+              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+              className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent font-dmsans text-gray-900 appearance-none cursor-pointer"
+              data-testid="status-filter"
+            >
+              <option value="all">All Status</option>
+              <option value="Available">Available</option>
+              <option value="Booked">Booked</option>
+              <option value="Sold">Sold</option>
             </select>
           </div>
 
@@ -234,6 +252,16 @@ export const InventoryPage = () => {
                 <option value="1000000-2000000">10-20 Lakh</option>
                 <option value="2000000-5000000">20-50 Lakh</option>
                 <option value="5000000-99999999">Above 50 Lakh</option>
+              </select>
+              <select
+                value={filters.status}
+                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-dmsans"
+              >
+                <option value="all">All Status</option>
+                <option value="Available">Available</option>
+                <option value="Booked">Booked</option>
+                <option value="Sold">Sold</option>
               </select>
             </div>
           )}

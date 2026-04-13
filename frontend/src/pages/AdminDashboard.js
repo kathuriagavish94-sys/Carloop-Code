@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Star, X, Mail, Phone, Calendar, Users } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, X, Mail, Phone, Calendar, Users, Car } from 'lucide-react';
 import { toast } from 'sonner';
 import { AdminCustomerLeads } from './AdminCustomerLeads';
+import { AdminDeliveries } from './AdminDeliveries';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -30,6 +31,7 @@ export const AdminDashboard = () => {
     fuel_type: 'Petrol',
     transmission: 'Manual',
     condition: 'Excellent',
+    status: 'Available',
     features: '',
     is_featured: false,
   });
@@ -110,6 +112,7 @@ export const AdminDashboard = () => {
       fuel_type: car.fuel_type,
       transmission: car.transmission,
       condition: car.condition || 'Excellent',
+      status: car.status || 'Available',
       features: car.features?.join(', ') || '',
       is_featured: car.is_featured,
     });
@@ -368,6 +371,18 @@ export const AdminDashboard = () => {
                 <Users className="h-4 w-4" />
                 Customer Leads
               </button>
+              <button
+                onClick={() => setActiveTab('deliveries')}
+                className={`px-6 py-4 font-manrope font-semibold flex items-center gap-2 ${
+                  activeTab === 'deliveries'
+                    ? 'border-b-2 border-green-600 text-green-600'
+                    : 'text-gray-600 hover:text-green-600'
+                }`}
+                data-testid="deliveries-tab"
+              >
+                <Car className="h-4 w-4" />
+                Deliveries
+              </button>
             </nav>
           </div>
 
@@ -435,6 +450,7 @@ export const AdminDashboard = () => {
                         <th className="px-4 py-3 text-left font-manrope font-semibold text-gray-700">Price</th>
                         <th className="px-4 py-3 text-left font-manrope font-semibold text-gray-700">Year</th>
                         <th className="px-4 py-3 text-left font-manrope font-semibold text-gray-700">KM</th>
+                        <th className="px-4 py-3 text-left font-manrope font-semibold text-gray-700">Status</th>
                         <th className="px-4 py-3 text-left font-manrope font-semibold text-gray-700">Featured</th>
                         <th className="px-4 py-3 text-left font-manrope font-semibold text-gray-700">Actions</th>
                       </tr>
@@ -456,6 +472,15 @@ export const AdminDashboard = () => {
                           <td className="px-4 py-3 font-manrope text-gray-700">{car.year}</td>
                           <td className="px-4 py-3 font-manrope text-gray-700">
                             {car.km_driven.toLocaleString()}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                              car.status === 'Sold' ? 'bg-red-100 text-red-700' :
+                              car.status === 'Booked' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-green-100 text-green-700'
+                            }`}>
+                              {car.status || 'Available'}
+                            </span>
                           </td>
                           <td className="px-4 py-3">
                             {car.is_featured && <Star className="h-5 w-5 text-accent fill-accent" />}
@@ -644,6 +669,10 @@ export const AdminDashboard = () => {
 
             {activeTab === 'leads' && (
               <AdminCustomerLeads />
+            )}
+
+            {activeTab === 'deliveries' && (
+              <AdminDeliveries />
             )}
           </div>
         </div>
@@ -852,6 +881,20 @@ export const AdminDashboard = () => {
                     <option value="Excellent">Excellent</option>
                     <option value="Good">Good</option>
                     <option value="Fair">Fair</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-manrope font-semibold text-gray-700 mb-2">Status</label>
+                  <select
+                    value={carFormData.status || 'Available'}
+                    onChange={(e) => setCarFormData({ ...carFormData, status: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
+                    data-testid="status-input"
+                  >
+                    <option value="Available">Available</option>
+                    <option value="Booked">Booked</option>
+                    <option value="Sold">Sold</option>
                   </select>
                 </div>
               </div>

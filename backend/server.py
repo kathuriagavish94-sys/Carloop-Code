@@ -218,6 +218,22 @@ class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
 
+# Delivery Images Model
+class DeliveryImage(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    image_url: str
+    car_name: str
+    customer_name: str
+    delivery_location: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class DeliveryImageCreate(BaseModel):
+    image_url: str
+    car_name: str
+    customer_name: str
+    delivery_location: str
+
 def create_token(admin_id: str, email: str) -> str:
     payload = {
         'id': admin_id,
@@ -406,6 +422,18 @@ async def get_cars(featured: Optional[bool] = None):
         query['is_featured'] = featured
     
     cars = await db.cars.find(query, {"_id": 0}).to_list(1000)
+    for car in cars:
+        if isinstance(car.get('created_at'), str):
+            car['created_at'] = datetime.fromisoformat(car['created_at'])
+    return cars
+
+# Recently Sold Cars Endpoint - must be before /cars/{car_id}
+@api_router.get("/cars/recently-sold")
+async def get_recently_sold_cars(limit: int = 5):
+    cars = await db.cars.find(
+        {"status": {"$in": ["Sold", "Booked"]}},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(limit).to_list(limit)
     for car in cars:
         if isinstance(car.get('created_at'), str):
             car['created_at'] = datetime.fromisoformat(car['created_at'])
@@ -888,6 +916,33 @@ async def verify_reset_token(token: str):
         raise HTTPException(status_code=400, detail="Reset token has expired")
     
     return {"valid": True, "email": token_doc['email']}
+
+# Delivery Images Endpoints
+@api_router.get("/delivery-images", response_model=List[DeliveryImage])
+async def get_delivery_images(limit: Optional[int] = None):
+    query = db.delivery_images.find({}, {"_id": 0}).sort("created_at", -1)
+    if limit:
+        query = query.limit(limit)
+    deliveries = await query.to_list(100)
+    for delivery in deliveries:
+        if isinstance(delivery.get('created_at'), str):
+            delivery['created_at'] = datetime.fromisoformat(delivery['created_at'])
+    return deliveries
+
+@api_router.post("/delivery-images", response_model=DeliveryImage)
+async def create_delivery_image(delivery_data: DeliveryImageCreate, admin: dict = Depends(verify_token)):
+    delivery = DeliveryImage(**delivery_data.model_dump())
+    doc = delivery.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.delivery_images.insert_one(doc)
+    return delivery
+
+@api_router.delete("/delivery-images/{delivery_id}")
+async def delete_delivery_image(delivery_id: str, admin: dict = Depends(verify_token)):
+    result = await db.delivery_images.delete_one({"id": delivery_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Delivery image not found")
+    return {"message": "Delivery image deleted successfully"}
 
 app.include_router(api_router)
 
