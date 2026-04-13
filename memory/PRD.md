@@ -11,129 +11,98 @@ Create a complete car dealer website that includes a homepage, inventory page, a
 
 ## Key Features Implemented
 
-### Phase 1: Core Platform (DONE)
-- [x] Homepage with hero section, featured cars, navigation
-- [x] Inventory page with car listings in card format
-- [x] Contact page with enquiry form
-- [x] Admin Dashboard with JWT authentication
-- [x] CRUD operations for car inventory
+### Phase 1-5: Core Platform + Enhanced Features + TruVant Redesign (DONE)
+- Homepage with hero, featured cars, trust badges, testimonials
+- Inventory page with filters (fuel, transmission, price, status)
+- Contact page with enquiry form
+- Admin Dashboard with JWT authentication
+- Google Auth for customer login
+- CSV bulk upload, Google Drive image URL conversion
+- WhatsApp integration, "Get A Call Back" forms
+- Customer Lead Capture Modal on Login
+- Circular TruVant Logo branding
+- Admin Forgot Password flow
 
-### Phase 2: Enhanced Features (DONE)
-- [x] Google Auth for customer login (Emergent-managed)
-- [x] CSV bulk upload for inventory (`/api/cars/bulk-upload`)
-- [x] Google Drive image URL auto-conversion
-- [x] WhatsApp integration button
-- [x] "Get A Call Back" capture forms
-- [x] Sold/Booked status tiles on car cards
-- [x] Testimonials with YouTube video embeds
+### Phase 6: Circular Logo Fix + Deliveries + Car Status (DONE - April 13, 2026)
 
-### Phase 3: TruVant Premium Homepage Redesign (DONE)
-- [x] Complete rebrand from "Carloop" to "TruVant"
-- [x] Premium "Spinny-like" homepage design with 7 sections
-- [x] Updated Footer with TruVant branding
-- [x] Custom Tailwind classes in index.css
-- [x] Outfit + DM Sans typography
+#### Feature 1: Circular Logo Fix
+- [x] Logo now fills circle with `object-cover` and `border-radius: 50%`
+- [x] Applied to: Navbar, Footer, Admin Login, Admin Dashboard
 
-### Phase 4: Premium Styling for All Pages (DONE)
-- [x] InventoryPage redesign with dark header, sticky filters
-- [x] CarDetailPage redesign with gallery, specs cards, trust badges
-- [x] ContactPage redesign with colored info cards, dark help section
+#### Feature 2: Delivery Pictures Section
+- [x] **"Families Catered So Far.."** section on homepage
+- [x] Delivery cards show: customer image, car name, customer name, delivery location
+- [x] Grid layout: 3 columns desktop, 2 tablet, 1 mobile
+- [x] Hover effects with shadow and scale
+- [x] **Admin Deliveries Tab** in Admin Dashboard
+- [x] Add delivery form: Image URL, Car Name, Customer Name, Location
+- [x] Deliveries table with delete functionality
+- [x] API: `GET/POST/DELETE /api/delivery-images`
 
-### Phase 5: Email Notifications & Mobile UX (DONE)
-- [x] Real email sending for callbacks using Resend API
-- [x] Mobile sticky bottom bar component (Call, WhatsApp buttons)
-
-### Phase 6: Customer Lead Capture & Admin Recovery (DONE - April 9, 2026)
-- [x] **Customer Lead Capture Modal**
-  - Opens when user clicks "Login" button
-  - Captures: Name, Mobile (10-digit validation), Email (required)
-  - Optional: Budget Range, Interested Car Type
-  - Saves to `customer_leads` collection
-  - Then redirects to Google Auth
-- [x] **Circular TruVant Logo**
-  - CircularLogo component with white background, soft shadow
-  - Applied to: Navbar, Footer, Admin Login, Admin Dashboard
-  - TruVant brand colors: Primary #0F172A, Accent #2563EB
-- [x] **Admin Forgot Password Flow**
-  - "Forgot Password?" link on login page
-  - Password reset email (requires RESEND_API_KEY)
-  - Token-based reset with expiry
-- [x] **New Default Admin**
-  - Email: admin@truvant.com
-  - Password: Admin@123
-- [x] **Admin Customer Leads Section**
-  - New "Customer Leads" tab in Admin Dashboard
-  - Search by name, email, mobile
-  - Filter by source
-  - Export CSV functionality
+#### Feature 3: Car Status (Sold/Booked/Available)
+- [x] **Status badges with colors**:
+  - Green: Available
+  - Yellow: Booked  
+  - Red: Sold
+- [x] Badges shown on top-left of car cards
+- [x] **"Recently Sold" section** on homepage showing sold/booked cars
+- [x] Grayscale images for sold/booked cars
+- [x] Strikethrough prices for sold/booked cars
+- [x] **Disabled buttons**: "SOLD OUT" or "BOOKED" instead of "View Details"
+- [x] **Status filter** on Inventory page
+- [x] **Status column** in Admin car table with colored badges
+- [x] **Status dropdown** in Admin car form (Available/Booked/Sold)
+- [x] API: `GET /api/cars/recently-sold` returns sold/booked cars
 
 ## Database Schema
-- **cars**: make, model, year, price, mileage, fuel_type, transmission, image_url, gallery_urls, features, specifications, is_featured, status
+- **cars**: make, model, year, price, mileage, fuel_type, transmission, image_url, gallery_urls, features, specifications, is_featured, **status** (Available/Booked/Sold)
 - **users**: email, role, google_id
 - **enquiries**: name, email, phone, message
 - **callbacks**: name, phone, car_id, car_details, status
 - **testimonials**: customer_name, youtube_url, video_id, is_active
-- **customer_leads**: name, email, mobile, budget, car_interest, source, created_at
+- **customer_leads**: name, email, mobile, budget, car_interest, source
+- **delivery_images**: id, image_url, car_name, customer_name, delivery_location, created_at
 - **password_reset_tokens**: email, token, expires_at, used
 
 ## API Endpoints
 - `GET/POST /api/cars` - Car CRUD
 - `GET /api/cars/{id}` - Car details
+- `GET /api/cars/recently-sold` - Recently sold/booked cars
 - `POST /api/auth/login` - Admin login
 - `POST /api/auth/google` - Customer Google auth
 - `POST /api/cars/bulk-upload` - CSV inventory upload
-- `POST /api/callbacks` - Callback requests (with email notification)
+- `POST /api/callbacks` - Callback requests
 - `POST /api/enquiries` - Contact form submissions
 - `GET/POST /api/testimonials` - Testimonials
 - `POST /api/customer-leads` - Create customer lead
-- `GET /api/customer-leads` - List leads (admin auth required)
+- `GET /api/customer-leads` - List leads (admin auth)
 - `GET /api/customer-leads/export` - Export leads as CSV
+- `GET/POST/DELETE /api/delivery-images` - Delivery images
 - `POST /api/admin/forgot-password` - Request password reset
-- `POST /api/admin/reset-password` - Reset password with token
-- `GET /api/admin/verify-reset-token` - Verify reset token
+- `POST /api/admin/reset-password` - Reset password
 
 ## Admin Credentials
-- **New (TruVant)**: admin@truvant.com / Admin@123
-- **Legacy (Carloop)**: admin@carloop.com / admin123
+- **TruVant**: admin@truvant.com / Admin@123
+- **Legacy**: admin@carloop.com / admin123
 
-## Environment Variables Required
-```
-# Backend (.env)
-MONGO_URL=mongodb://localhost:27017
-DB_NAME=test_database
-RESEND_API_KEY=re_xxxxx (optional - for email notifications)
-SENDER_EMAIL=onboarding@resend.dev
-ADMIN_EMAIL=Kathuria.gavish94@gmail.com
-```
-
-## Testing Results
-- Backend: 100% (19/19 tests passed)
+## Testing Results (Iteration 6)
+- Backend: 100% (14/14 tests passed)
 - Frontend: 100% functional
-- All 6 phases verified working
+- All 3 features verified working
 
 ## Mocked Features
 - Email notifications require `RESEND_API_KEY` environment variable
-- If not configured, callbacks saved but emails logged only
-- Password reset tokens logged to console if no email API configured
 
 ## Key Files
-- `/app/frontend/src/components/LeadCaptureModal.js` - Lead capture modal
-- `/app/frontend/src/components/CircularLogo.js` - Circular logo component
-- `/app/frontend/src/pages/ForgotPasswordPage.js` - Forgot password
-- `/app/frontend/src/pages/ResetPasswordPage.js` - Reset password
-- `/app/frontend/src/pages/AdminCustomerLeads.js` - Leads management
-- `/app/frontend/src/pages/HomePage.js` - Premium homepage
-- `/app/frontend/src/pages/InventoryPage.js` - Redesigned inventory
-- `/app/frontend/src/pages/CarDetailPage.js` - Redesigned car details
-- `/app/frontend/src/pages/ContactPage.js` - Redesigned contact
-- `/app/frontend/src/components/MobileBottomBar.js` - Mobile sticky bar
-- `/app/frontend/src/components/PremiumCarCard.js` - Car card component
-- `/app/frontend/src/components/Footer.js` - TruVant footer
-- `/app/frontend/src/index.css` - Custom Tailwind classes
-- `/app/backend/server.py` - Main API server
+- `/app/frontend/src/components/CircularLogo.js` - Circular logo with object-cover
+- `/app/frontend/src/pages/HomePage.js` - Deliveries + Recently Sold sections
+- `/app/frontend/src/pages/AdminDeliveries.js` - Admin deliveries management
+- `/app/frontend/src/components/PremiumCarCard.js` - Status badges
+- `/app/frontend/src/pages/InventoryPage.js` - Status filter
+- `/app/frontend/src/pages/AdminDashboard.js` - Deliveries tab, Status column
 
 ## Last Updated
-April 9, 2026 - Completed Phase 6: Customer Lead Capture Modal, Circular TruVant Logo branding, Admin Forgot Password flow with new admin@truvant.com credentials, Admin Customer Leads section with search/filter/export.
+April 13, 2026 - Completed Phase 6: Circular Logo Fix, Delivery Pictures Section, Car Status Badges
 
 ## Future Enhancements (Optional)
 - [ ] Add "Compare Cars" feature
