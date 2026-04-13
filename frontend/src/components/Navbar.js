@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Phone, User, LogOut, Menu, X } from 'lucide-react';
 import axios from 'axios';
@@ -17,13 +17,7 @@ export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showLeadModal, setShowLeadModal] = useState(false);
 
-  useEffect(() => {
-    if (!isAdmin) {
-      checkCustomerAuth();
-    }
-  }, [location.pathname]);
-
-  const checkCustomerAuth = async () => {
+  const checkCustomerAuth = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/customer/auth/me`, {
         withCredentials: true,
@@ -32,7 +26,13 @@ export const Navbar = () => {
     } catch (error) {
       setCustomerUser(null);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isAdmin) {
+      checkCustomerAuth();
+    }
+  }, [isAdmin, checkCustomerAuth]);
 
   const handleLoginClick = () => {
     // Open lead capture modal instead of direct login

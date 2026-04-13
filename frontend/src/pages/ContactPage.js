@@ -81,10 +81,10 @@ export const ContactPage = () => {
       <section className="py-12 -mt-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {contactInfo.map((item, index) => {
+            {contactInfo.map((item) => {
               const Icon = item.icon;
               const Content = item.link ? (
-                <a href={item.link} className="hover:text-orange-500 transition-colors">
+                <a key={item.title} href={item.link} className="hover:text-orange-500 transition-colors">
                   {item.content}
                 </a>
               ) : (
@@ -93,7 +93,7 @@ export const ContactPage = () => {
 
               return (
                 <div
-                  key={index}
+                  key={item.title}
                   className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow"
                 >
                   <div className={`w-12 h-12 ${item.color} rounded-xl flex items-center justify-center mb-4`}>

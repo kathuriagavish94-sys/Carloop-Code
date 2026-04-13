@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, Star, X, Mail, Phone, Calendar, Users, Car } from 'lucide-react';
@@ -43,16 +43,7 @@ export const AdminDashboard = () => {
   const [uploadingCsv, setUploadingCsv] = useState(false);
   const [csvResult, setCsvResult] = useState(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem('admin_token');
-    if (!token) {
-      navigate('/admin/login');
-      return;
-    }
-    fetchData();
-  }, [navigate]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const token = localStorage.getItem('admin_token');
       const [carsRes, enquiriesRes, testimonialsRes, callbacksRes] = await Promise.all([
@@ -78,7 +69,16 @@ export const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      navigate('/admin/login');
+      return;
+    }
+    fetchData();
+  }, [navigate, fetchData]);
 
   const handleAddCar = () => {
     setEditingCar(null);

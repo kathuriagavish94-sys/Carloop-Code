@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { Search, Download, Users, Calendar, Mail, Phone, Filter } from 'lucide-react';
 import { toast } from 'sonner';
@@ -12,11 +12,7 @@ export const AdminCustomerLeads = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sourceFilter, setSourceFilter] = useState('');
 
-  useEffect(() => {
-    fetchLeads();
-  }, [searchTerm, sourceFilter]);
-
-  const fetchLeads = async () => {
+  const fetchLeads = useCallback(async () => {
     try {
       const token = localStorage.getItem('admin_token');
       const params = new URLSearchParams();
@@ -33,7 +29,11 @@ export const AdminCustomerLeads = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, sourceFilter]);
+
+  useEffect(() => {
+    fetchLeads();
+  }, [fetchLeads]);
 
   const handleExport = async () => {
     try {

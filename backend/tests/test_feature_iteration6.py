@@ -10,9 +10,9 @@ import os
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://carloop-dealer.preview.emergentagent.com')
 
-# Test credentials
-ADMIN_EMAIL = "admin@truvant.com"
-ADMIN_PASSWORD = "Admin@123"
+# Test credentials from environment variables
+ADMIN_EMAIL = os.environ.get('TEST_ADMIN_EMAIL', 'admin@truvant.com')
+ADMIN_PASSWORD = os.environ.get('TEST_ADMIN_PASSWORD', 'Admin@123')
 
 
 @pytest.fixture(scope="function")

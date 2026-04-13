@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Lock, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
@@ -21,15 +21,7 @@ export const ResetPasswordPage = () => {
   const [email, setEmail] = useState('');
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    if (token) {
-      validateToken();
-    } else {
-      setValidating(false);
-    }
-  }, [token]);
-
-  const validateToken = async () => {
+  const validateToken = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/admin/verify-reset-token?token=${token}`);
       setTokenValid(true);
@@ -39,7 +31,15 @@ export const ResetPasswordPage = () => {
     } finally {
       setValidating(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (token) {
+      validateToken();
+    } else {
+      setValidating(false);
+    }
+  }, [token, validateToken]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

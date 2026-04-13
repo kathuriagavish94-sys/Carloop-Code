@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { PremiumCarCard } from '../components/PremiumCarCard';
-import { Search, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -27,15 +27,7 @@ export const InventoryPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  useEffect(() => {
-    fetchCars();
-  }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [cars, searchTerm, filters]);
-
-  const fetchCars = async () => {
+  const fetchCars = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/cars`);
       setCars(response.data);
@@ -44,9 +36,9 @@ export const InventoryPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filtered = [...cars];
 
     if (searchTerm) {
@@ -75,7 +67,15 @@ export const InventoryPage = () => {
     }
 
     setFilteredCars(filtered);
-  };
+  }, [cars, searchTerm, filters]);
+
+  useEffect(() => {
+    fetchCars();
+  }, [fetchCars]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
 
   const handleCallbackRequest = (car) => {
     setSelectedCar(car);

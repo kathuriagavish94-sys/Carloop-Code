@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -23,11 +23,7 @@ export const CarDetailPage = () => {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchCarDetails();
-  }, [id]);
-
-  const fetchCarDetails = async () => {
+  const fetchCarDetails = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/cars/${id}`);
       setCar(response.data);
@@ -38,7 +34,11 @@ export const CarDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate]);
+
+  useEffect(() => {
+    fetchCarDetails();
+  }, [fetchCarDetails]);
 
   const handleSubmitCallback = async (e) => {
     e.preventDefault();
@@ -238,8 +238,8 @@ export const CarDetailPage = () => {
               <div className="bg-white p-6 rounded-2xl border border-gray-200">
                 <h3 className="font-outfit font-semibold text-lg text-gray-900 mb-4">Features</h3>
                 <div className="grid grid-cols-2 gap-3">
-                  {car.features.map((feature, index) => (
-                    <div key={index} className="flex items-center gap-2">
+                  {car.features.map((feature) => (
+                    <div key={feature} className="flex items-center gap-2">
                       <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
                       <span className="font-dmsans text-sm text-gray-700">{feature}</span>
                     </div>

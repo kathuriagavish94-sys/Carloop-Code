@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { PremiumCarCard } from '../components/PremiumCarCard';
@@ -19,14 +19,7 @@ export const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchFeaturedCars();
-    fetchRecentlySoldCars();
-    fetchDeliveries();
-    fetchTestimonials();
-  }, []);
-
-  const fetchFeaturedCars = async () => {
+  const fetchFeaturedCars = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/cars?featured=true`);
       setFeaturedCars(response.data.slice(0, 6));
@@ -35,34 +28,41 @@ export const HomePage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchRecentlySoldCars = async () => {
+  const fetchRecentlySoldCars = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/cars/recently-sold?limit=4`);
       setRecentlySoldCars(response.data);
     } catch (error) {
       console.error('Error fetching recently sold cars:', error);
     }
-  };
+  }, []);
 
-  const fetchDeliveries = async () => {
+  const fetchDeliveries = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/delivery-images?limit=6`);
       setDeliveries(response.data);
     } catch (error) {
       console.error('Error fetching deliveries:', error);
     }
-  };
+  }, []);
 
-  const fetchTestimonials = async () => {
+  const fetchTestimonials = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/testimonials?active_only=true`);
       setTestimonials(response.data.slice(0, 3));
     } catch (error) {
       console.error('Error fetching testimonials:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchFeaturedCars();
+    fetchRecentlySoldCars();
+    fetchDeliveries();
+    fetchTestimonials();
+  }, [fetchFeaturedCars, fetchRecentlySoldCars, fetchDeliveries, fetchTestimonials]);
 
   const trustBadges = [
     { icon: Shield, title: 'Verified Cars', description: 'Every car inspected by experts' },
@@ -169,11 +169,11 @@ export const HomePage = () => {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {trustBadges.map((badge, index) => {
+            {trustBadges.map((badge) => {
               const Icon = badge.icon;
               return (
                 <div 
-                  key={index}
+                  key={badge.title}
                   className="bg-green-50 rounded-2xl p-6 text-center group hover:shadow-xl transition-all duration-300"
                 >
                   <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
@@ -349,11 +349,11 @@ export const HomePage = () => {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {whyBuyFromUs.map((item, index) => {
+            {whyBuyFromUs.map((item) => {
               const Icon = item.icon;
               return (
                 <div 
-                  key={index}
+                  key={item.title}
                   className="bg-gray-50 rounded-2xl p-6 text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                 >
                   <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -385,9 +385,9 @@ export const HomePage = () => {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {budgetCategories.map((category, index) => (
+            {budgetCategories.map((category) => (
               <button
-                key={index}
+                key={category.label}
                 onClick={() => navigate('/inventory')}
                 className="group relative aspect-square rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
               >
