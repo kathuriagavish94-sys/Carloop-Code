@@ -11,6 +11,7 @@ import os
 import base64
 import httpx
 import asyncio
+import re
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 from typing import Optional, Tuple
 import logging
@@ -27,14 +28,78 @@ BACKGROUND_WHITE = (255, 255, 255)
 # Logo URL
 TRUVANT_LOGO_URL = "https://customer-assets.emergentagent.com/job_carloop-dealer/artifacts/1p0vv1ry_Gemini_Generated_Image_sp7phhsp7phhsp7p.png"
 
+# Feature flag for branding
+BRANDING_ENABLED = True
+
+
+def convert_google_drive_to_direct_url(url: str) -> str:
+    """Convert any Google Drive URL to a direct download URL"""
+    if not url or 'drive.google.com' not in url:
+        return url
+    
+    # Extract file ID from various patterns
+    file_id = None
+    
+    # Pattern 1: /file/d/FILE_ID/view or /file/d/FILE_ID/preview
+    match = re.search(r'/file/d/([a-zA-Z0-9_-]+)', url)
+    if match:
+        file_id = match.group(1)
+    
+    # Pattern 2: /open?id=FILE_ID
+    if not file_id:
+        match = re.search(r'[?&]id=([a-zA-Z0-9_-]+)', url)
+        if match:
+            file_id = match.group(1)
+    
+    # Pattern 3: /uc?export=view&id=FILE_ID (already converted)
+    if not file_id and 'uc?export=view' in url:
+        return url
+    
+    if file_id:
+        # Use Google's direct image serving URL format
+        return f"https://drive.google.com/uc?export=view&id={file_id}"
+    
+    return url
+
 
 async def download_image(url: str) -> Optional[Image.Image]:
     """Download an image from URL and return PIL Image"""
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.get(url)
+        # Convert Google Drive URLs to direct download URLs
+        download_url = convert_google_drive_to_direct_url(url)
+        
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+            # Use headers that mimic a browser request
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+            }
+            response = await client.get(download_url, headers=headers)
             response.raise_for_status()
-            return Image.open(io.BytesIO(response.content))
+            
+            # Check if we got an actual image (not HTML)
+            content_type = response.headers.get('content-type', '')
+            if 'text/html' in content_type:
+                logger.warning(f"URL returned HTML instead of image: {url}")
+                return None
+            
+            # Try to open as image
+            image_data = io.BytesIO(response.content)
+            try:
+                img = Image.open(image_data)
+                # Verify it's a valid image by loading it
+                img.load()
+                return img
+            except Exception as img_error:
+                logger.error(f"Failed to parse image data from {url}: {img_error}")
+                return None
+                
+    except httpx.TimeoutException:
+        logger.error(f"Timeout downloading image from {url}")
+        return None
+    except httpx.HTTPStatusError as e:
+        logger.error(f"HTTP error downloading image from {url}: {e.response.status_code}")
+        return None
     except Exception as e:
         logger.error(f"Error downloading image from {url}: {e}")
         return None
@@ -99,7 +164,7 @@ def create_verified_badge(width: int = 140, height: int = 32) -> Image.Image:
     try:
         # Try to use a font, fall back to default if not available
         font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 12)
-    except:
+    except Exception:
         font = ImageFont.load_default()
     
     # Draw checkmark circle

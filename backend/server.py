@@ -496,13 +496,18 @@ async def get_car(car_id: str):
 
 @api_router.post("/cars", response_model=Car)
 async def create_car(car_data: CarCreate, admin: dict = Depends(verify_token), background_tasks: BackgroundTasks = None):
+    """
+    Create a new car listing.
+    Image branding is OPTIONAL - car is ALWAYS saved even if branding fails.
+    """
     # Convert Google Drive URLs
     car_dict = car_data.model_dump()
     original_image = convert_google_drive_url(car_dict['image'])
     
-    # Validate image URL
+    # Validate image URL (lenient mode for Google Drive)
     is_valid, validation_message = await validate_image_url(original_image)
-    if not is_valid:
+    if not is_valid and 'google' not in original_image.lower():
+        # Only block for non-Google URLs that are definitely invalid
         raise HTTPException(
             status_code=400, 
             detail=f"Invalid image URL: {validation_message}"
@@ -511,8 +516,10 @@ async def create_car(car_data: CarCreate, admin: dict = Depends(verify_token), b
     # Store original image
     car_dict['original_image'] = original_image
     
-    # Try to brand the main image (with timeout protection)
+    # Try to brand the main image (NON-BLOCKING - car saves regardless)
     branding_success = False
+    branding_message = ""
+    
     try:
         branded_result = await asyncio.wait_for(
             process_and_upload_branded_image(original_image),
@@ -521,17 +528,21 @@ async def create_car(car_data: CarCreate, admin: dict = Depends(verify_token), b
         if branded_result:
             car_dict['image'] = branded_result
             branding_success = True
+            branding_message = "Image branded successfully"
         else:
             car_dict['image'] = original_image
+            branding_message = "Branding skipped - using original image"
             logger.warning(f"Image branding returned None for {original_image}, using original")
     except asyncio.TimeoutError:
-        logger.error(f"Image branding timed out for {original_image}")
+        logger.warning(f"Image branding timed out for {original_image}")
         car_dict['image'] = original_image
+        branding_message = "Branding timed out - using original image"
     except Exception as e:
-        logger.error(f"Error branding car image: {e}")
+        logger.warning(f"Error branding car image (non-blocking): {e}")
         car_dict['image'] = original_image
+        branding_message = "Branding skipped - using original image"
     
-    # Process gallery images (with individual timeouts)
+    # Process gallery images (with individual timeouts, NON-BLOCKING)
     if car_dict.get('gallery'):
         original_gallery = [convert_google_drive_url(url) for url in car_dict['gallery']]
         car_dict['original_gallery'] = original_gallery
@@ -552,6 +563,7 @@ async def create_car(car_data: CarCreate, admin: dict = Depends(verify_token), b
         
         car_dict['gallery'] = branded_gallery
     
+    # ALWAYS save the car - this should NEVER fail due to branding
     try:
         car = Car(**car_dict)
         doc = car.model_dump()
@@ -562,7 +574,7 @@ async def create_car(car_data: CarCreate, admin: dict = Depends(verify_token), b
         if branding_success:
             logger.info(f"Car created with TruVant branding: {car.make} {car.model}")
         else:
-            logger.info(f"Car created without branding (fallback): {car.make} {car.model}")
+            logger.info(f"Car created (branding skipped): {car.make} {car.model} - {branding_message}")
         
         return car
     except Exception as e:
@@ -877,8 +889,20 @@ class ImageBrandingRequest(BaseModel):
 async def brand_image_endpoint(request: ImageBrandingRequest, admin: dict = Depends(verify_token)):
     """
     Process an image and add TruVant branding
-    Returns the branded image as a data URI
+    Returns the branded image as a data URI, or falls back to original URL
     """
+    from services.image_branding import BRANDING_ENABLED
+    
+    # If branding is disabled, return original URL
+    if not BRANDING_ENABLED:
+        return {
+            "success": True,
+            "branded_image": request.image_url,
+            "original_image": request.image_url,
+            "branding_applied": False,
+            "message": "Branding temporarily disabled"
+        }
+    
     try:
         result = await process_branded_image(
             request.image_url,
@@ -895,27 +919,58 @@ async def brand_image_endpoint(request: ImageBrandingRequest, admin: dict = Depe
             return {
                 "success": True,
                 "branded_image": branded_uri,
-                "original_image": request.image_url
+                "original_image": request.image_url,
+                "branding_applied": True
             }
         else:
-            raise HTTPException(status_code=500, detail="Failed to process image")
+            # Branding failed - return original URL as fallback (NOT an error)
+            logger.warning(f"Branding failed for {request.image_url}, returning original")
+            return {
+                "success": True,
+                "branded_image": request.image_url,
+                "original_image": request.image_url,
+                "branding_applied": False,
+                "message": "Could not process image for branding, using original"
+            }
     except Exception as e:
         logger.error(f"Error branding image: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # Return original URL as fallback (NOT an error)
+        return {
+            "success": True,
+            "branded_image": request.image_url,
+            "original_image": request.image_url,
+            "branding_applied": False,
+            "message": f"Branding skipped: {str(e)}"
+        }
 
 @api_router.post("/brand-image-preview")
 async def brand_image_preview(request: ImageBrandingRequest):
     """
     Preview branded image (no auth required for preview)
+    NEVER blocks - always returns a result (branded or original)
     """
+    from services.image_branding import BRANDING_ENABLED
+    
+    # If branding is disabled, return original URL
+    if not BRANDING_ENABLED:
+        return {
+            "success": True,
+            "branded_image": request.image_url,
+            "branding_applied": False,
+            "message": "Branding temporarily disabled - showing original"
+        }
+    
     try:
-        result = await process_branded_image(
-            request.image_url,
-            add_background=request.add_background,
-            add_logo=request.add_logo,
-            add_badge=request.add_badge,
-            logo_opacity=request.logo_opacity,
-            output_quality=75  # Lower quality for preview
+        result = await asyncio.wait_for(
+            process_branded_image(
+                request.image_url,
+                add_background=request.add_background,
+                add_logo=request.add_logo,
+                add_badge=request.add_badge,
+                logo_opacity=request.logo_opacity,
+                output_quality=75  # Lower quality for preview
+            ),
+            timeout=20.0  # 20 second timeout for preview
         )
         
         if result:
@@ -923,13 +978,35 @@ async def brand_image_preview(request: ImageBrandingRequest):
             branded_uri = image_to_data_uri(image_bytes, content_type)
             return {
                 "success": True,
-                "branded_image": branded_uri
+                "branded_image": branded_uri,
+                "branding_applied": True
             }
         else:
-            raise HTTPException(status_code=500, detail="Failed to process image")
+            # Branding failed - return original URL (NOT an error)
+            logger.warning(f"Preview branding failed for {request.image_url}, returning original")
+            return {
+                "success": True,
+                "branded_image": request.image_url,
+                "branding_applied": False,
+                "message": "Could not generate preview. Image will be used as-is."
+            }
+    except asyncio.TimeoutError:
+        logger.warning(f"Preview branding timed out for {request.image_url}")
+        return {
+            "success": True,
+            "branded_image": request.image_url,
+            "branding_applied": False,
+            "message": "Preview timed out. Image will be processed when saving."
+        }
     except Exception as e:
         logger.error(f"Error previewing branded image: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # Return original URL as fallback (NOT an error)
+        return {
+            "success": True,
+            "branded_image": request.image_url,
+            "branding_applied": False,
+            "message": "Preview unavailable: using original image"
+        }
 
 # Customer Leads Endpoints
 @api_router.post("/customer-leads", response_model=CustomerLead)

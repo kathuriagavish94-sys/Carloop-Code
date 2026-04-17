@@ -147,15 +147,26 @@ export const AdminDashboard = () => {
         add_logo: true,
         add_badge: true,
         logo_opacity: 0.20
-      });
+      }, { timeout: 30000 }); // 30 second timeout
       
       if (response.data.success) {
         setBrandedPreview(response.data.branded_image);
-        toast.success('Branded preview generated!');
+        
+        // Show appropriate message based on whether branding was applied
+        if (response.data.branding_applied) {
+          toast.success('Branded preview generated!');
+        } else {
+          // Branding was skipped but we got the original image back
+          setImagePreview(response.data.branded_image);
+          toast.info(response.data.message || 'Preview ready (branding will be attempted on save)');
+        }
       }
     } catch (error) {
       console.error('Error generating branded preview:', error);
-      toast.error('Failed to generate branded preview');
+      // Don't show error toast - just show the original image
+      toast.info('Preview unavailable - original image will be used');
+      // Keep the original image preview
+      setImagePreview(imageUrl);
       setBrandedPreview(null);
     } finally {
       setIsGeneratingPreview(false);
@@ -231,18 +242,31 @@ export const AdminDashboard = () => {
 
     setIsSubmittingCar(true);
     try {
+      let response;
       if (editingCar) {
-        await axios.put(`${API}/cars/${editingCar.id}`, submitData, {
+        response = await axios.put(`${API}/cars/${editingCar.id}`, submitData, {
           headers: { Authorization: `Bearer ${token}` },
           timeout: 60000, // 60 second timeout for branding
         });
-        toast.success('Car updated with TruVant branding!');
+        // Check if branding was applied based on the returned image
+        const isBranded = response.data?.image?.startsWith('data:image');
+        if (isBranded) {
+          toast.success('Car updated with TruVant branding!');
+        } else {
+          toast.success('Car updated successfully!');
+        }
       } else {
-        await axios.post(`${API}/cars`, submitData, {
+        response = await axios.post(`${API}/cars`, submitData, {
           headers: { Authorization: `Bearer ${token}` },
           timeout: 60000, // 60 second timeout for branding
         });
-        toast.success('Car added with TruVant branding!');
+        // Check if branding was applied based on the returned image
+        const isBranded = response.data?.image?.startsWith('data:image');
+        if (isBranded) {
+          toast.success('Car added with TruVant branding!');
+        } else {
+          toast.success('Car added successfully! (Original image used)');
+        }
       }
       setShowCarModal(false);
       setImagePreview(null);
