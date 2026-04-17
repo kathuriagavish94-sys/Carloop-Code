@@ -1,10 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Fuel, Gauge, Settings, Star, MessageCircle } from 'lucide-react';
+import { Calendar, Fuel, Gauge, Settings, Star, MessageCircle, Images } from 'lucide-react';
 
 export const PremiumCarCard = ({ car }) => {
   const navigate = useNavigate();
   const isSoldOrBooked = car.status === 'Sold' || car.status === 'Booked';
+
+  // Calculate total images (main + gallery)
+  const totalImages = 1 + (car.gallery?.length || 0);
 
   const formatPrice = (price) => {
     if (price >= 10000000) return `₹${(price / 10000000).toFixed(2)} Cr`;
@@ -76,6 +79,17 @@ export const PremiumCarCard = ({ car }) => {
             className={`absolute top-4 right-4 px-3 py-1.5 rounded-lg text-xs font-bold ${featureBadge.color} shadow-lg`}
           >
             {featureBadge.text}
+          </div>
+        )}
+        
+        {/* Image Count Badge - Bottom Right */}
+        {totalImages > 1 && (
+          <div 
+            className="absolute bottom-4 right-4 flex items-center gap-1 px-2.5 py-1.5 bg-black/70 backdrop-blur-sm text-white rounded-lg text-xs font-medium"
+            data-testid={`image-count-${car.id}`}
+          >
+            <Images className="h-3.5 w-3.5" />
+            <span>{totalImages}</span>
           </div>
         )}
       </div>

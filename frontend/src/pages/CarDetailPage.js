@@ -88,9 +88,31 @@ export const CarDetailPage = () => {
     }
   };
 
-  const galleryImages = car?.gallery_urls?.length > 0 
-    ? [car.image, ...car.gallery_urls] 
-    : [car?.image];
+  // Combine main image with gallery images for the carousel
+  const galleryImages = React.useMemo(() => {
+    const images = [];
+    
+    // Add main image first
+    if (car?.image) {
+      images.push(car.image);
+    }
+    
+    // Add gallery images (avoiding duplicates)
+    if (car?.gallery && Array.isArray(car.gallery)) {
+      car.gallery.forEach(img => {
+        if (img && !images.includes(img)) {
+          images.push(img);
+        }
+      });
+    }
+    
+    // Fallback to ensure at least one image
+    if (images.length === 0 && car?.original_image) {
+      images.push(car.original_image);
+    }
+    
+    return images.length > 0 ? images : ['/placeholder-car.png'];
+  }, [car]);
 
   if (loading) {
     return (
