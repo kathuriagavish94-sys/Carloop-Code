@@ -80,6 +80,26 @@ All features from previous phases remain functional:
 - [x] Added 60-second timeout for image branding operations
 - [x] Client-side URL validation before API call
 
+### Phase 8.2: Non-Blocking Image Branding (DONE - April 17, 2026)
+
+#### Critical Fix: Branding Never Blocks Car Upload
+- [x] Made image branding NON-BLOCKING - car ALWAYS saves even if branding fails
+- [x] Car creation uses asyncio.wait_for() with 30s timeout for branding
+- [x] Branding failures log warnings but don't throw errors
+- [x] Original image URL used as fallback when branding fails
+
+#### Preview Endpoint Graceful Fallbacks
+- [x] Preview endpoint NEVER returns 500 error - always returns success
+- [x] Returns `branding_applied: true/false` to indicate branding status
+- [x] Returns helpful message when branding is skipped (timeout, invalid URL, etc.)
+- [x] Frontend shows appropriate toast.info() for fallbacks instead of error
+
+#### Google Drive URL Improvements
+- [x] `download_image()` now uses browser-like headers for Google Drive
+- [x] Handles HTML responses gracefully (returns None instead of crashing)
+- [x] Follow redirects enabled for Google Drive URL resolution
+- [x] Added BRANDING_ENABLED flag to disable branding if needed
+
 ## Admin Credentials
 - **TruVant**: admin@truvant.com / Admin@123
 - **Legacy**: admin@carloop.com / admin123
@@ -108,7 +128,7 @@ The following are documented for future refactoring:
 - Implement secure session management on backend
 
 ## Last Updated
-April 17, 2026 - Completed Phase 8: Automatic TruVant Image Branding Feature
+April 17, 2026 - Completed Phase 8.2: Non-Blocking Image Branding (Critical Bug Fix)
 
 ## Future Enhancements (Optional)
 - [ ] P1: YouTube video player integration for testimonials section
