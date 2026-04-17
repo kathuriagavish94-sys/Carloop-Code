@@ -263,25 +263,63 @@ def extract_youtube_video_id(url: str) -> str:
     raise ValueError("Invalid YouTube URL")
 
 def convert_google_drive_url(url: str) -> str:
-    """Convert Google Drive share URL to lh3.googleusercontent.com direct image URL"""
+    """Convert Google Drive share URL to a direct image URL that works for display and download"""
     import re
     if not url:
         return url
     
     if 'drive.google.com' in url:
+        # Extract file ID from various Google Drive URL patterns
+        file_id = None
+        
         # Pattern 1: /file/d/FILE_ID/view or /file/d/FILE_ID/preview
         match = re.search(r'/file/d/([a-zA-Z0-9_-]+)', url)
         if match:
             file_id = match.group(1)
-            return f"https://lh3.googleusercontent.com/d/{file_id}"
         
         # Pattern 2: /open?id=FILE_ID
-        match = re.search(r'[?&]id=([a-zA-Z0-9_-]+)', url)
-        if match:
-            file_id = match.group(1)
-            return f"https://lh3.googleusercontent.com/d/{file_id}"
+        if not file_id:
+            match = re.search(r'[?&]id=([a-zA-Z0-9_-]+)', url)
+            if match:
+                file_id = match.group(1)
+        
+        if file_id:
+            # Use the Google Drive direct download format that works better for images
+            # This format is more reliable for downloading in backend and for display
+            return f"https://drive.google.com/uc?export=view&id={file_id}"
     
     return url
+
+
+async def validate_image_url(url: str) -> tuple[bool, str]:
+    """Validate that an image URL is accessible and returns an image"""
+    if not url:
+        return False, "Image URL is required"
+    
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.head(url, follow_redirects=True)
+            
+            if response.status_code == 200:
+                content_type = response.headers.get('content-type', '')
+                if 'image' in content_type or 'drive.google.com' in url or 'googleusercontent' in url:
+                    return True, "Valid image URL"
+                else:
+                    # For Google Drive URLs, allow even if content-type isn't image
+                    if 'google' in url:
+                        return True, "Google Drive URL (assumed valid)"
+                    return False, f"URL does not point to an image (content-type: {content_type})"
+            elif response.status_code == 403:
+                return False, "Image URL is not publicly accessible (403 Forbidden). Make sure the file is shared with 'Anyone with the link'."
+            elif response.status_code == 404:
+                return False, "Image URL not found (404). Please check the URL is correct."
+            else:
+                return False, f"Failed to access image URL (HTTP {response.status_code})"
+    except httpx.TimeoutException:
+        # For timeout, allow it since it might just be a slow server
+        return True, "URL validation timed out (will attempt to use anyway)"
+    except Exception as e:
+        return False, f"Error validating image URL: {str(e)}"
 
 async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
@@ -462,21 +500,38 @@ async def create_car(car_data: CarCreate, admin: dict = Depends(verify_token), b
     car_dict = car_data.model_dump()
     original_image = convert_google_drive_url(car_dict['image'])
     
+    # Validate image URL
+    is_valid, validation_message = await validate_image_url(original_image)
+    if not is_valid:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid image URL: {validation_message}"
+        )
+    
     # Store original image
     car_dict['original_image'] = original_image
     
-    # Try to brand the main image
+    # Try to brand the main image (with timeout protection)
+    branding_success = False
     try:
-        branded_result = await process_and_upload_branded_image(original_image)
+        branded_result = await asyncio.wait_for(
+            process_and_upload_branded_image(original_image),
+            timeout=30.0  # 30 second timeout for branding
+        )
         if branded_result:
             car_dict['image'] = branded_result
+            branding_success = True
         else:
             car_dict['image'] = original_image
+            logger.warning(f"Image branding returned None for {original_image}, using original")
+    except asyncio.TimeoutError:
+        logger.error(f"Image branding timed out for {original_image}")
+        car_dict['image'] = original_image
     except Exception as e:
         logger.error(f"Error branding car image: {e}")
         car_dict['image'] = original_image
     
-    # Process gallery images
+    # Process gallery images (with individual timeouts)
     if car_dict.get('gallery'):
         original_gallery = [convert_google_drive_url(url) for url in car_dict['gallery']]
         car_dict['original_gallery'] = original_gallery
@@ -484,18 +539,35 @@ async def create_car(car_data: CarCreate, admin: dict = Depends(verify_token), b
         branded_gallery = []
         for url in original_gallery[:5]:  # Limit to first 5 for performance
             try:
-                branded = await process_and_upload_branded_image(url)
+                branded = await asyncio.wait_for(
+                    process_and_upload_branded_image(url),
+                    timeout=15.0  # 15 second timeout per gallery image
+                )
                 branded_gallery.append(branded if branded else url)
-            except:
+            except asyncio.TimeoutError:
+                logger.warning(f"Gallery image branding timed out for {url}")
+                branded_gallery.append(url)
+            except Exception:
                 branded_gallery.append(url)
         
         car_dict['gallery'] = branded_gallery
     
-    car = Car(**car_dict)
-    doc = car.model_dump()
-    doc['created_at'] = doc['created_at'].isoformat()
-    await db.cars.insert_one(doc)
-    return car
+    try:
+        car = Car(**car_dict)
+        doc = car.model_dump()
+        doc['created_at'] = doc['created_at'].isoformat()
+        await db.cars.insert_one(doc)
+        
+        # Log success with branding status
+        if branding_success:
+            logger.info(f"Car created with TruVant branding: {car.make} {car.model}")
+        else:
+            logger.info(f"Car created without branding (fallback): {car.make} {car.model}")
+        
+        return car
+    except Exception as e:
+        logger.error(f"Database error creating car: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to save car to database: {str(e)}")
 
 @api_router.put("/cars/{car_id}", response_model=Car)
 async def update_car(car_id: str, car_update: CarUpdate, admin: dict = Depends(verify_token)):
@@ -529,7 +601,7 @@ async def update_car(car_id: str, car_update: CarUpdate, admin: dict = Depends(v
             try:
                 branded = await process_and_upload_branded_image(url)
                 branded_gallery.append(branded if branded else url)
-            except:
+            except Exception:
                 branded_gallery.append(url)
         
         update_data['gallery'] = branded_gallery

@@ -169,9 +169,51 @@ export const AdminDashboard = () => {
     setBrandedPreview(null);
   }, []);
 
+  // Validate image URL on the client side
+  const validateImageUrl = useCallback((url) => {
+    return new Promise((resolve) => {
+      if (!url) {
+        resolve({ valid: false, message: 'Image URL is required' });
+        return;
+      }
+      
+      // Check if it's a valid URL format
+      try {
+        new URL(url);
+      } catch {
+        resolve({ valid: false, message: 'Invalid URL format' });
+        return;
+      }
+      
+      // For Google Drive URLs, assume valid (backend will validate)
+      if (url.includes('drive.google.com') || url.includes('googleusercontent.com')) {
+        resolve({ valid: true, message: 'Google Drive URL detected' });
+        return;
+      }
+      
+      // Try to load the image
+      const img = new window.Image();
+      img.onload = () => resolve({ valid: true, message: 'Image loaded successfully' });
+      img.onerror = () => resolve({ valid: false, message: 'Unable to load image. Please check the URL is correct and publicly accessible.' });
+      img.src = url;
+      
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        resolve({ valid: true, message: 'Image validation timed out, will attempt to use' });
+      }, 10000);
+    });
+  }, []);
+
   const handleSubmitCar = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('admin_token');
+
+    // Validate image URL first (client-side quick check)
+    const imageValidation = await validateImageUrl(carFormData.image);
+    if (!imageValidation.valid) {
+      toast.error(imageValidation.message);
+      return;
+    }
 
     const submitData = {
       ...carFormData,
@@ -192,11 +234,13 @@ export const AdminDashboard = () => {
       if (editingCar) {
         await axios.put(`${API}/cars/${editingCar.id}`, submitData, {
           headers: { Authorization: `Bearer ${token}` },
+          timeout: 60000, // 60 second timeout for branding
         });
         toast.success('Car updated with TruVant branding!');
       } else {
         await axios.post(`${API}/cars`, submitData, {
           headers: { Authorization: `Bearer ${token}` },
+          timeout: 60000, // 60 second timeout for branding
         });
         toast.success('Car added with TruVant branding!');
       }
@@ -206,7 +250,27 @@ export const AdminDashboard = () => {
       fetchData();
     } catch (error) {
       console.error('Error submitting car:', error);
-      toast.error('Failed to save car');
+      
+      // Extract and show specific error message from backend
+      let errorMessage = 'Failed to save car';
+      
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        errorMessage = 'Request timed out. Image branding may take longer for large images. Please try again with a smaller image.';
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Session expired. Please login again.';
+        localStorage.removeItem('admin_token');
+        navigate('/admin/login');
+      } else if (error.response?.status === 400) {
+        errorMessage = error.response.data?.detail || 'Invalid data provided';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (!navigator.onLine) {
+        errorMessage = 'No internet connection. Please check your network.';
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsSubmittingCar(false);
     }
