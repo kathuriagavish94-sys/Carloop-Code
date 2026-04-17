@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Star, X, Mail, Phone, Calendar, Users, Car, Image, Loader2, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, X, Mail, Phone, Calendar, Users, Car, Image, Loader2, Eye, EyeOff, Sparkles, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 import { AdminCustomerLeads } from './AdminCustomerLeads';
 import { AdminDeliveries } from './AdminDeliveries';
+import { AdminFamilies } from './AdminFamilies';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -526,6 +527,18 @@ export const AdminDashboard = () => {
                 <Car className="h-4 w-4" />
                 Deliveries
               </button>
+              <button
+                onClick={() => setActiveTab('families')}
+                className={`px-6 py-4 font-manrope font-semibold flex items-center gap-2 ${
+                  activeTab === 'families'
+                    ? 'border-b-2 border-pink-600 text-pink-600'
+                    : 'text-gray-600 hover:text-pink-600'
+                }`}
+                data-testid="families-tab"
+              >
+                <Heart className="h-4 w-4" />
+                Families Catered
+              </button>
             </nav>
           </div>
 
@@ -824,6 +837,10 @@ export const AdminDashboard = () => {
 
             {activeTab === 'deliveries' && (
               <AdminDeliveries />
+            )}
+
+            {activeTab === 'families' && (
+              <AdminFamilies />
             )}
           </div>
         </div>

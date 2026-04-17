@@ -241,6 +241,18 @@ class DeliveryImageCreate(BaseModel):
     customer_name: str
     delivery_location: str
 
+# Family Deliveries Model (for "Families Catered So Far" carousel)
+class FamilyDelivery(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    image_url: str
+    caption: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class FamilyDeliveryCreate(BaseModel):
+    image_url: str
+    caption: Optional[str] = None
+
 def create_token(admin_id: str, email: str) -> str:
     payload = {
         'id': admin_id,
@@ -1213,6 +1225,43 @@ async def delete_delivery_image(delivery_id: str, admin: dict = Depends(verify_t
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Delivery image not found")
     return {"message": "Delivery image deleted successfully"}
+
+# Family Deliveries Endpoints (for "Families Catered So Far" carousel)
+@api_router.get("/family-deliveries", response_model=List[FamilyDelivery])
+async def get_family_deliveries(limit: Optional[int] = None):
+    """Get all family delivery images for the carousel"""
+    query = db.family_deliveries.find({}, {"_id": 0}).sort("created_at", -1)
+    if limit:
+        query = query.limit(limit)
+    deliveries = await query.to_list(100)
+    for delivery in deliveries:
+        if isinstance(delivery.get('created_at'), str):
+            delivery['created_at'] = datetime.fromisoformat(delivery['created_at'])
+    return deliveries
+
+@api_router.post("/family-deliveries", response_model=FamilyDelivery)
+async def create_family_delivery(delivery_data: FamilyDeliveryCreate, admin: dict = Depends(verify_token)):
+    """Add a new family delivery image (admin only)"""
+    # Convert Google Drive URLs
+    image_url = convert_google_drive_url(delivery_data.image_url)
+    
+    delivery = FamilyDelivery(
+        image_url=image_url,
+        caption=delivery_data.caption
+    )
+    doc = delivery.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.family_deliveries.insert_one(doc)
+    logger.info(f"Family delivery image added: {image_url}")
+    return delivery
+
+@api_router.delete("/family-deliveries/{delivery_id}")
+async def delete_family_delivery(delivery_id: str, admin: dict = Depends(verify_token)):
+    """Delete a family delivery image (admin only)"""
+    result = await db.family_deliveries.delete_one({"id": delivery_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Family delivery image not found")
+    return {"message": "Family delivery image deleted successfully"}
 
 app.include_router(api_router)
 

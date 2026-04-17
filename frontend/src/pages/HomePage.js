@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { PremiumCarCard } from '../components/PremiumCarCard';
+import { FamiliesCarousel } from '../components/FamiliesCarousel';
 import { 
   Search, Shield, FileCheck, Truck, CreditCard, 
   CheckCircle2, Award, Clock, HeadphonesIcon, TrendingUp,
@@ -81,12 +82,22 @@ export const HomePage = () => {
   ];
 
   const budgetCategories = [
-    { label: 'Under ₹2 Lakh', image: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400' },
-    { label: 'Under ₹3 Lakh', image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400' },
-    { label: 'Under ₹5 Lakh', image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400' },
-    { label: 'SUV Under Budget', image: 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400' },
-    { label: 'Automatic Cars', image: 'https://images.unsplash.com/photo-1617531653520-bd466115490d?w=400' }
+    { label: 'Under ₹2 Lakh', image: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=400', filter: { priceRange: '0-200000' } },
+    { label: 'Under ₹3 Lakh', image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400', filter: { priceRange: '0-300000' } },
+    { label: 'Under ₹5 Lakh', image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400', filter: { priceRange: '0-500000' } },
+    { label: 'SUV Under Budget', image: 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400', filter: { bodyType: 'SUV' } },
+    { label: 'Automatic Cars', image: 'https://images.unsplash.com/photo-1617531653520-bd466115490d?w=400', filter: { transmission: 'Automatic' } }
   ];
+
+  // Handle filter navigation
+  const handleFilterClick = (category) => {
+    const params = new URLSearchParams();
+    if (category.filter.priceRange) params.set('priceRange', category.filter.priceRange);
+    if (category.filter.transmission) params.set('transmission', category.filter.transmission);
+    if (category.filter.bodyType) params.set('bodyType', category.filter.bodyType);
+    if (category.filter.fuelType) params.set('fuelType', category.filter.fuelType);
+    navigate(`/inventory?${params.toString()}`);
+  };
 
   const formatPrice = (price) => {
     if (price >= 10000000) return `₹${(price / 10000000).toFixed(2)} Cr`;
@@ -388,8 +399,9 @@ export const HomePage = () => {
             {budgetCategories.map((category) => (
               <button
                 key={category.label}
-                onClick={() => navigate('/inventory')}
+                onClick={() => handleFilterClick(category)}
                 className="group relative aspect-square rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
+                data-testid={`budget-filter-${category.label.replace(/[^a-zA-Z0-9]/g, '-')}`}
               >
                 <img 
                   src={category.image} 
@@ -451,6 +463,9 @@ export const HomePage = () => {
           </div>
         </section>
       )}
+
+      {/* Families Catered Section */}
+      <FamiliesCarousel />
 
       {/* Final CTA */}
       <section className="py-20 bg-blue-900 text-white">

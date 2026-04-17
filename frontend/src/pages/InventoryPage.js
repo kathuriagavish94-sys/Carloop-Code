@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
+import { useSearchParams } from 'react-router-dom';
 import { PremiumCarCard } from '../components/PremiumCarCard';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -8,6 +9,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 export const InventoryPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [cars, setCars] = useState([]);
   const [filteredCars, setFilteredCars] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,6 +19,7 @@ export const InventoryPage = () => {
     transmission: 'all',
     priceRange: 'all',
     status: 'all',
+    bodyType: 'all',
   });
   const [showCallbackModal, setShowCallbackModal] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
@@ -26,6 +29,29 @@ export const InventoryPage = () => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  // Read URL parameters and set initial filters
+  useEffect(() => {
+    const priceRange = searchParams.get('priceRange');
+    const transmission = searchParams.get('transmission');
+    const bodyType = searchParams.get('bodyType');
+    const fuelType = searchParams.get('fuelType');
+    const status = searchParams.get('status');
+    const search = searchParams.get('search');
+
+    setFilters(prev => ({
+      ...prev,
+      priceRange: priceRange || 'all',
+      transmission: transmission || 'all',
+      bodyType: bodyType || 'all',
+      fuelType: fuelType || 'all',
+      status: status || 'all',
+    }));
+
+    if (search) {
+      setSearchTerm(search);
+    }
+  }, [searchParams]);
 
   const fetchCars = useCallback(async () => {
     try {
@@ -41,6 +67,7 @@ export const InventoryPage = () => {
   const applyFilters = useCallback(() => {
     let filtered = [...cars];
 
+    // Search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (car) =>
@@ -49,21 +76,42 @@ export const InventoryPage = () => {
       );
     }
 
+    // Fuel type filter
     if (filters.fuelType !== 'all') {
       filtered = filtered.filter((car) => car.fuel_type === filters.fuelType);
     }
 
+    // Transmission filter
     if (filters.transmission !== 'all') {
       filtered = filtered.filter((car) => car.transmission === filters.transmission);
     }
 
+    // Price range filter
     if (filters.priceRange !== 'all') {
       const [min, max] = filters.priceRange.split('-').map(Number);
-      filtered = filtered.filter((car) => car.price >= min && car.price <= max);
+      filtered = filtered.filter((car) => {
+        const price = Number(car.price);
+        return price >= min && price <= max;
+      });
     }
 
+    // Status filter
     if (filters.status !== 'all') {
       filtered = filtered.filter((car) => car.status === filters.status);
+    }
+
+    // Body type filter (SUV, Sedan, Hatchback, etc.)
+    if (filters.bodyType !== 'all') {
+      filtered = filtered.filter((car) => {
+        // Check body_type field or infer from model name
+        if (car.body_type) {
+          return car.body_type.toLowerCase() === filters.bodyType.toLowerCase();
+        }
+        // Fallback: check if model name contains the body type
+        const modelLower = car.model.toLowerCase();
+        const bodyTypeLower = filters.bodyType.toLowerCase();
+        return modelLower.includes(bodyTypeLower);
+      });
     }
 
     setFilteredCars(filtered);
@@ -110,10 +158,29 @@ export const InventoryPage = () => {
       transmission: 'all',
       priceRange: 'all',
       status: 'all',
+      bodyType: 'all',
     });
+    // Clear URL parameters
+    setSearchParams({});
   };
 
-  const hasActiveFilters = searchTerm || filters.fuelType !== 'all' || filters.transmission !== 'all' || filters.priceRange !== 'all' || filters.status !== 'all';
+  // Update URL when filters change
+  const updateFilter = (key, value) => {
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
+    
+    // Update URL params
+    const params = new URLSearchParams();
+    if (newFilters.priceRange !== 'all') params.set('priceRange', newFilters.priceRange);
+    if (newFilters.transmission !== 'all') params.set('transmission', newFilters.transmission);
+    if (newFilters.fuelType !== 'all') params.set('fuelType', newFilters.fuelType);
+    if (newFilters.status !== 'all') params.set('status', newFilters.status);
+    if (newFilters.bodyType !== 'all') params.set('bodyType', newFilters.bodyType);
+    if (searchTerm) params.set('search', searchTerm);
+    setSearchParams(params);
+  };
+
+  const hasActiveFilters = searchTerm || filters.fuelType !== 'all' || filters.transmission !== 'all' || filters.priceRange !== 'all' || filters.status !== 'all' || filters.bodyType !== 'all';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -148,7 +215,7 @@ export const InventoryPage = () => {
 
             <select
               value={filters.fuelType}
-              onChange={(e) => setFilters({ ...filters, fuelType: e.target.value })}
+              onChange={(e) => updateFilter('fuelType', e.target.value)}
               className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent font-dmsans text-gray-900 appearance-none cursor-pointer"
               data-testid="fuel-filter"
             >
@@ -161,7 +228,7 @@ export const InventoryPage = () => {
 
             <select
               value={filters.transmission}
-              onChange={(e) => setFilters({ ...filters, transmission: e.target.value })}
+              onChange={(e) => updateFilter('transmission', e.target.value)}
               className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent font-dmsans text-gray-900 appearance-none cursor-pointer"
               data-testid="transmission-filter"
             >
@@ -172,11 +239,13 @@ export const InventoryPage = () => {
 
             <select
               value={filters.priceRange}
-              onChange={(e) => setFilters({ ...filters, priceRange: e.target.value })}
+              onChange={(e) => updateFilter('priceRange', e.target.value)}
               className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent font-dmsans text-gray-900 appearance-none cursor-pointer"
               data-testid="price-filter"
             >
               <option value="all">All Prices</option>
+              <option value="0-200000">Under 2 Lakh</option>
+              <option value="0-300000">Under 3 Lakh</option>
               <option value="0-500000">Under 5 Lakh</option>
               <option value="500000-1000000">5-10 Lakh</option>
               <option value="1000000-2000000">10-20 Lakh</option>
@@ -186,7 +255,7 @@ export const InventoryPage = () => {
 
             <select
               value={filters.status}
-              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+              onChange={(e) => updateFilter('status', e.target.value)}
               className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent font-dmsans text-gray-900 appearance-none cursor-pointer"
               data-testid="status-filter"
             >
@@ -223,7 +292,7 @@ export const InventoryPage = () => {
             <div className="md:hidden mt-4 p-4 bg-gray-50 rounded-xl space-y-3">
               <select
                 value={filters.fuelType}
-                onChange={(e) => setFilters({ ...filters, fuelType: e.target.value })}
+                onChange={(e) => updateFilter('fuelType', e.target.value)}
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-dmsans"
               >
                 <option value="all">All Fuel Types</option>
@@ -234,7 +303,7 @@ export const InventoryPage = () => {
               </select>
               <select
                 value={filters.transmission}
-                onChange={(e) => setFilters({ ...filters, transmission: e.target.value })}
+                onChange={(e) => updateFilter('transmission', e.target.value)}
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-dmsans"
               >
                 <option value="all">All Transmissions</option>
@@ -243,10 +312,12 @@ export const InventoryPage = () => {
               </select>
               <select
                 value={filters.priceRange}
-                onChange={(e) => setFilters({ ...filters, priceRange: e.target.value })}
+                onChange={(e) => updateFilter('priceRange', e.target.value)}
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-dmsans"
               >
                 <option value="all">All Prices</option>
+                <option value="0-200000">Under 2 Lakh</option>
+                <option value="0-300000">Under 3 Lakh</option>
                 <option value="0-500000">Under 5 Lakh</option>
                 <option value="500000-1000000">5-10 Lakh</option>
                 <option value="1000000-2000000">10-20 Lakh</option>
@@ -255,7 +326,7 @@ export const InventoryPage = () => {
               </select>
               <select
                 value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                onChange={(e) => updateFilter('status', e.target.value)}
                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-dmsans"
               >
                 <option value="all">All Status</option>
