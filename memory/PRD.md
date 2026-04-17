@@ -67,6 +67,19 @@ All features from previous phases remain functional:
 - [x] "Branded" indicator badge on car thumbnails in inventory table
 - [x] Auto-Branding info box in Add/Edit Car modal
 
+### Phase 8.1: Car Creation Bug Fixes (DONE - April 17, 2026)
+
+#### Google Drive URL Handling
+- [x] Updated `convert_google_drive_url()` to use `drive.google.com/uc?export=view&id=FILE_ID` format
+- [x] Previous `lh3.googleusercontent.com` format was returning 400 errors
+
+#### Error Handling Improvements
+- [x] Added `validate_image_url()` function for pre-submission validation
+- [x] Backend returns specific error messages (404, 403, timeout, invalid URL)
+- [x] Frontend displays actual error from backend (not generic "Failed to save car")
+- [x] Added 60-second timeout for image branding operations
+- [x] Client-side URL validation before API call
+
 ## Admin Credentials
 - **TruVant**: admin@truvant.com / Admin@123
 - **Legacy**: admin@carloop.com / admin123
