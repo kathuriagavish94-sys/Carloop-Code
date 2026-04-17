@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Star, X, Mail, Phone, Calendar, Users, Car } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, X, Mail, Phone, Calendar, Users, Car, Image, Loader2, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { AdminCustomerLeads } from './AdminCustomerLeads';
 import { AdminDeliveries } from './AdminDeliveries';
@@ -42,6 +42,13 @@ export const AdminDashboard = () => {
   });
   const [uploadingCsv, setUploadingCsv] = useState(false);
   const [csvResult, setCsvResult] = useState(null);
+  
+  // Image branding states
+  const [imagePreview, setImagePreview] = useState(null);
+  const [brandedPreview, setBrandedPreview] = useState(null);
+  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
+  const [showBrandedPreview, setShowBrandedPreview] = useState(true);
+  const [isSubmittingCar, setIsSubmittingCar] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -96,6 +103,9 @@ export const AdminDashboard = () => {
       features: '',
       is_featured: false,
     });
+    setImagePreview(null);
+    setBrandedPreview(null);
+    setShowBrandedPreview(true);
     setShowCarModal(true);
   };
 
@@ -106,8 +116,8 @@ export const AdminDashboard = () => {
       model: car.model,
       year: car.year,
       price: car.price,
-      image: car.image,
-      gallery: car.gallery?.join('|') || '',
+      image: car.original_image || car.image,
+      gallery: car.original_gallery?.join('|') || car.gallery?.join('|') || '',
       km_driven: car.km_driven,
       fuel_type: car.fuel_type,
       transmission: car.transmission,
@@ -116,8 +126,48 @@ export const AdminDashboard = () => {
       features: car.features?.join(', ') || '',
       is_featured: car.is_featured,
     });
+    setImagePreview(car.original_image || car.image);
+    setBrandedPreview(car.image);
+    setShowBrandedPreview(true);
     setShowCarModal(true);
   };
+
+  // Generate branded image preview
+  const generateBrandedPreview = useCallback(async (imageUrl) => {
+    if (!imageUrl) {
+      setBrandedPreview(null);
+      return;
+    }
+    
+    setIsGeneratingPreview(true);
+    try {
+      const response = await axios.post(`${API}/brand-image-preview`, {
+        image_url: imageUrl,
+        add_background: true,
+        add_logo: true,
+        add_badge: true,
+        logo_opacity: 0.20
+      });
+      
+      if (response.data.success) {
+        setBrandedPreview(response.data.branded_image);
+        toast.success('Branded preview generated!');
+      }
+    } catch (error) {
+      console.error('Error generating branded preview:', error);
+      toast.error('Failed to generate branded preview');
+      setBrandedPreview(null);
+    } finally {
+      setIsGeneratingPreview(false);
+    }
+  }, []);
+
+  // Handle image URL change with debouncing
+  const handleImageUrlChange = useCallback((url) => {
+    setCarFormData(prev => ({ ...prev, image: url }));
+    setImagePreview(url);
+    setBrandedPreview(null);
+  }, []);
 
   const handleSubmitCar = async (e) => {
     e.preventDefault();
@@ -137,23 +187,28 @@ export const AdminDashboard = () => {
         .filter(Boolean),
     };
 
+    setIsSubmittingCar(true);
     try {
       if (editingCar) {
         await axios.put(`${API}/cars/${editingCar.id}`, submitData, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        toast.success('Car updated successfully!');
+        toast.success('Car updated with TruVant branding!');
       } else {
         await axios.post(`${API}/cars`, submitData, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        toast.success('Car added successfully!');
+        toast.success('Car added with TruVant branding!');
       }
       setShowCarModal(false);
+      setImagePreview(null);
+      setBrandedPreview(null);
       fetchData();
     } catch (error) {
       console.error('Error submitting car:', error);
       toast.error('Failed to save car');
+    } finally {
+      setIsSubmittingCar(false);
     }
   };
 
@@ -459,11 +514,19 @@ export const AdminDashboard = () => {
                       {cars.map((car) => (
                         <tr key={car.id} className="border-b hover:bg-gray-50" data-testid={`car-row-${car.id}`}>
                           <td className="px-4 py-3">
-                            <img
-                              src={car.image}
-                              alt={`${car.make} ${car.model}`}
-                              className="w-20 h-14 object-cover rounded"
-                            />
+                            <div className="relative">
+                              <img
+                                src={car.image}
+                                alt={`${car.make} ${car.model}`}
+                                className="w-20 h-14 object-cover rounded"
+                              />
+                              {car.image?.startsWith('data:image') && (
+                                <div className="absolute -bottom-1 -right-1 bg-blue-600 text-white text-[8px] px-1 rounded flex items-center gap-0.5">
+                                  <Sparkles className="h-2 w-2" />
+                                  <span>Branded</span>
+                                </div>
+                              )}
+                            </div>
                           </td>
                           <td className="px-4 py-3 font-manrope font-semibold text-gray-900">
                             {car.make} {car.model}
@@ -901,17 +964,99 @@ export const AdminDashboard = () => {
 
               <div>
                 <label className="block font-manrope font-semibold text-gray-700 mb-2">Image URL</label>
-                <input
-                  type="url"
-                  value={carFormData.image}
-                  onChange={(e) => setCarFormData({ ...carFormData, image: e.target.value })}
-                  required
-                  placeholder="https://example.com/car-image.jpg"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
-                  data-testid="image-input"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={carFormData.image}
+                    onChange={(e) => handleImageUrlChange(e.target.value)}
+                    required
+                    placeholder="https://example.com/car-image.jpg"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-manrope"
+                    data-testid="image-input"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => generateBrandedPreview(carFormData.image)}
+                    disabled={!carFormData.image || isGeneratingPreview}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                    data-testid="generate-preview-button"
+                  >
+                    {isGeneratingPreview ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    <span className="hidden sm:inline">{isGeneratingPreview ? 'Branding...' : 'Preview'}</span>
+                  </button>
+                </div>
+                
+                {/* Image Preview Section */}
+                {(imagePreview || brandedPreview) && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-manrope font-semibold text-gray-700 flex items-center gap-2">
+                        <Image className="h-4 w-4" />
+                        Image Preview
+                      </h4>
+                      {brandedPreview && (
+                        <button
+                          type="button"
+                          onClick={() => setShowBrandedPreview(!showBrandedPreview)}
+                          className="flex items-center gap-2 px-3 py-1 text-sm bg-white border border-gray-300 rounded-full hover:bg-gray-100 transition-colors"
+                          data-testid="toggle-preview-button"
+                        >
+                          {showBrandedPreview ? (
+                            <>
+                              <Eye className="h-4 w-4 text-blue-600" />
+                              <span className="text-blue-600 font-medium">Branded</span>
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="h-4 w-4 text-gray-600" />
+                              <span className="text-gray-600 font-medium">Original</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                    
+                    <div className="relative aspect-video rounded-lg overflow-hidden bg-white shadow-sm">
+                      {isGeneratingPreview && (
+                        <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center z-10">
+                          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-2" />
+                          <p className="text-sm text-gray-600 font-manrope">Adding TruVant branding...</p>
+                        </div>
+                      )}
+                      <img
+                        src={showBrandedPreview && brandedPreview ? brandedPreview : imagePreview}
+                        alt="Car preview"
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🚗</text></svg>';
+                        }}
+                      />
+                      {showBrandedPreview && brandedPreview && (
+                        <div className="absolute bottom-2 right-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-full font-medium flex items-center gap-1">
+                          <Sparkles className="h-3 w-3" />
+                          TruVant Branded
+                        </div>
+                      )}
+                    </div>
+                    
+                    {!brandedPreview && imagePreview && (
+                      <p className="text-xs text-gray-500 mt-2 text-center">
+                        Click "Preview" to see how TruVant branding will look on this image
+                      </p>
+                    )}
+                  </div>
+                )}
+                
                 <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm font-manrope font-semibold text-blue-900 mb-1">📸 Google Drive Images:</p>
+                  <p className="text-sm font-manrope font-semibold text-blue-900 mb-1">📸 Auto-Branding Enabled!</p>
+                  <p className="text-xs text-blue-800 mb-2">
+                    Images are automatically branded with the TruVant logo, verified badge, and premium styling when saved.
+                  </p>
+                  <p className="text-xs font-manrope font-semibold text-blue-900 mt-2">Google Drive Images:</p>
                   <ol className="text-xs font-manrope text-blue-800 space-y-1 ml-4 list-decimal">
                     <li>Upload image to Google Drive</li>
                     <li>Right-click → Share → Change to <strong>"Anyone with the link"</strong></li>
@@ -968,15 +1113,28 @@ export const AdminDashboard = () => {
               <div className="flex space-x-4 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-3 bg-primary text-white rounded-lg hover:bg-[#01352a] transition-colors font-manrope font-bold"
+                  disabled={isSubmittingCar}
+                  className="flex-1 px-6 py-3 bg-primary text-white rounded-lg hover:bg-[#01352a] transition-colors font-manrope font-bold flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                   data-testid="submit-car-button"
                 >
-                  {editingCar ? 'Update Car' : 'Add Car'}
+                  {isSubmittingCar ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span>Processing & Branding...</span>
+                    </>
+                  ) : (
+                    <span>{editingCar ? 'Update Car' : 'Add Car'}</span>
+                  )}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowCarModal(false)}
-                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-manrope font-bold"
+                  onClick={() => {
+                    setShowCarModal(false);
+                    setImagePreview(null);
+                    setBrandedPreview(null);
+                  }}
+                  disabled={isSubmittingCar}
+                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-manrope font-bold disabled:opacity-50"
                   data-testid="cancel-button"
                 >
                   Cancel
