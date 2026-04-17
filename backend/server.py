@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, Request, Response, UploadFile, File
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, Request, Response, UploadFile, File, BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -17,6 +17,7 @@ import httpx
 import csv
 import io
 import resend
+from services.image_branding import process_branded_image, image_to_data_uri, process_and_upload_branded_image
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -86,8 +87,10 @@ class Car(BaseModel):
     model: str
     year: int
     price: float
-    image: str
+    image: str  # This will be the branded image URL
+    original_image: Optional[str] = None  # Original unbranded image URL
     gallery: Optional[List[str]] = []
+    original_gallery: Optional[List[str]] = []  # Original gallery images
     km_driven: int
     fuel_type: str
     transmission: str
@@ -106,7 +109,9 @@ class CarCreate(BaseModel):
     year: int
     price: float
     image: str
+    original_image: Optional[str] = None
     gallery: Optional[List[str]] = []
+    original_gallery: Optional[List[str]] = []
     km_driven: int
     fuel_type: str
     transmission: str
@@ -124,7 +129,9 @@ class CarUpdate(BaseModel):
     year: Optional[int] = None
     price: Optional[float] = None
     image: Optional[str] = None
+    original_image: Optional[str] = None
     gallery: Optional[List[str]] = None
+    original_gallery: Optional[List[str]] = None
     km_driven: Optional[int] = None
     fuel_type: Optional[str] = None
     transmission: Optional[str] = None
@@ -450,13 +457,39 @@ async def get_car(car_id: str):
     return car
 
 @api_router.post("/cars", response_model=Car)
-async def create_car(car_data: CarCreate, admin: dict = Depends(verify_token)):
+async def create_car(car_data: CarCreate, admin: dict = Depends(verify_token), background_tasks: BackgroundTasks = None):
     # Convert Google Drive URLs
     car_dict = car_data.model_dump()
-    car_dict['image'] = convert_google_drive_url(car_dict['image'])
+    original_image = convert_google_drive_url(car_dict['image'])
     
+    # Store original image
+    car_dict['original_image'] = original_image
+    
+    # Try to brand the main image
+    try:
+        branded_result = await process_and_upload_branded_image(original_image)
+        if branded_result:
+            car_dict['image'] = branded_result
+        else:
+            car_dict['image'] = original_image
+    except Exception as e:
+        logger.error(f"Error branding car image: {e}")
+        car_dict['image'] = original_image
+    
+    # Process gallery images
     if car_dict.get('gallery'):
-        car_dict['gallery'] = [convert_google_drive_url(url) for url in car_dict['gallery']]
+        original_gallery = [convert_google_drive_url(url) for url in car_dict['gallery']]
+        car_dict['original_gallery'] = original_gallery
+        
+        branded_gallery = []
+        for url in original_gallery[:5]:  # Limit to first 5 for performance
+            try:
+                branded = await process_and_upload_branded_image(url)
+                branded_gallery.append(branded if branded else url)
+            except:
+                branded_gallery.append(url)
+        
+        car_dict['gallery'] = branded_gallery
     
     car = Car(**car_dict)
     doc = car.model_dump()
@@ -472,12 +505,34 @@ async def update_car(car_id: str, car_update: CarUpdate, admin: dict = Depends(v
     
     update_data = {k: v for k, v in car_update.model_dump().items() if v is not None}
     
-    # Convert Google Drive URLs if present
+    # Convert Google Drive URLs and brand images if present
     if 'image' in update_data:
-        update_data['image'] = convert_google_drive_url(update_data['image'])
+        original_image = convert_google_drive_url(update_data['image'])
+        update_data['original_image'] = original_image
+        
+        try:
+            branded_result = await process_and_upload_branded_image(original_image)
+            if branded_result:
+                update_data['image'] = branded_result
+            else:
+                update_data['image'] = original_image
+        except Exception as e:
+            logger.error(f"Error branding updated car image: {e}")
+            update_data['image'] = original_image
     
     if 'gallery' in update_data and update_data['gallery']:
-        update_data['gallery'] = [convert_google_drive_url(url) for url in update_data['gallery']]
+        original_gallery = [convert_google_drive_url(url) for url in update_data['gallery']]
+        update_data['original_gallery'] = original_gallery
+        
+        branded_gallery = []
+        for url in original_gallery[:5]:
+            try:
+                branded = await process_and_upload_branded_image(url)
+                branded_gallery.append(branded if branded else url)
+            except:
+                branded_gallery.append(url)
+        
+        update_data['gallery'] = branded_gallery
     
     if update_data:
         await db.cars.update_one({"id": car_id}, {"$set": update_data})
@@ -737,6 +792,72 @@ async def convert_drive_url_endpoint(request: Request):
     url = data.get('url', '')
     converted_url = convert_google_drive_url(url)
     return {"original": url, "converted": converted_url}
+
+# Image Branding Endpoints
+class ImageBrandingRequest(BaseModel):
+    image_url: str
+    add_background: bool = True
+    add_logo: bool = True
+    add_badge: bool = True
+    logo_opacity: float = 0.20
+
+@api_router.post("/brand-image")
+async def brand_image_endpoint(request: ImageBrandingRequest, admin: dict = Depends(verify_token)):
+    """
+    Process an image and add TruVant branding
+    Returns the branded image as a data URI
+    """
+    try:
+        result = await process_branded_image(
+            request.image_url,
+            add_background=request.add_background,
+            add_logo=request.add_logo,
+            add_badge=request.add_badge,
+            logo_opacity=request.logo_opacity,
+            output_quality=85
+        )
+        
+        if result:
+            content_type, image_bytes = result
+            branded_uri = image_to_data_uri(image_bytes, content_type)
+            return {
+                "success": True,
+                "branded_image": branded_uri,
+                "original_image": request.image_url
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to process image")
+    except Exception as e:
+        logger.error(f"Error branding image: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/brand-image-preview")
+async def brand_image_preview(request: ImageBrandingRequest):
+    """
+    Preview branded image (no auth required for preview)
+    """
+    try:
+        result = await process_branded_image(
+            request.image_url,
+            add_background=request.add_background,
+            add_logo=request.add_logo,
+            add_badge=request.add_badge,
+            logo_opacity=request.logo_opacity,
+            output_quality=75  # Lower quality for preview
+        )
+        
+        if result:
+            content_type, image_bytes = result
+            branded_uri = image_to_data_uri(image_bytes, content_type)
+            return {
+                "success": True,
+                "branded_image": branded_uri
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to process image")
+    except Exception as e:
+        logger.error(f"Error previewing branded image: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Customer Leads Endpoints
 @api_router.post("/customer-leads", response_model=CustomerLead)
