@@ -100,6 +100,19 @@ All features from previous phases remain functional:
 - [x] Follow redirects enabled for Google Drive URL resolution
 - [x] Added BRANDING_ENABLED flag to disable branding if needed
 
+### Phase 8.3: Multiple Image Gallery (DONE - April 17, 2026)
+
+#### Gallery Display Fix
+- [x] Fixed CarDetailPage to read `car.gallery` instead of `car.gallery_urls`
+- [x] Gallery thumbnails display below main image with click-to-select functionality
+- [x] Active thumbnail shows orange border indicator
+- [x] Main image changes when clicking on gallery thumbnails
+
+#### Image Count Badge on Cards
+- [x] PremiumCarCard shows image count badge (e.g., "5") when car has gallery images
+- [x] Badge displays at bottom-right with Images icon from lucide-react
+- [x] Only shows when totalImages > 1 (main + gallery)
+
 ## Admin Credentials
 - **TruVant**: admin@truvant.com / Admin@123
 - **Legacy**: admin@carloop.com / admin123
@@ -128,7 +141,7 @@ The following are documented for future refactoring:
 - Implement secure session management on backend
 
 ## Last Updated
-April 17, 2026 - Completed Phase 8.2: Non-Blocking Image Branding (Critical Bug Fix)
+April 17, 2026 - Completed Phase 8.3: Multiple Image Gallery Feature
 
 ## Future Enhancements (Optional)
 - [ ] P1: YouTube video player integration for testimonials section
