@@ -47,6 +47,26 @@ All features from previous phases remain functional:
 - [x] Fixed `ContactPage.js` - using `item.title` as key
 - [x] Fixed `CarDetailPage.js` - using `feature` string as key for features list
 
+### Phase 8: Automatic TruVant Image Branding (DONE - April 17, 2026)
+
+#### Backend Implementation
+- [x] Created `/app/backend/services/image_branding.py` - Pillow-based image processing service
+- [x] Gradient background with soft shadow effect
+- [x] "TruVant Verified" badge (top-left with checkmark)
+- [x] Circular TruVant logo watermark (bottom-right, 20% opacity)
+- [x] `POST /api/brand-image-preview` - Preview endpoint (no auth required)
+- [x] `POST /api/brand-image` - Production branding (auth required)
+- [x] Car creation/update automatically brands images
+- [x] Stores both `original_image` and branded `image` URLs
+
+#### Frontend Implementation
+- [x] Admin Dashboard: "Preview" button next to Image URL input
+- [x] Image Preview section with Original/Branded toggle
+- [x] Loading spinner with "Adding TruVant branding..." message
+- [x] Success toast "Car added with TruVant branding!"
+- [x] "Branded" indicator badge on car thumbnails in inventory table
+- [x] Auto-Branding info box in Add/Edit Car modal
+
 ## Admin Credentials
 - **TruVant**: admin@truvant.com / Admin@123
 - **Legacy**: admin@carloop.com / admin123
@@ -75,10 +95,12 @@ The following are documented for future refactoring:
 - Implement secure session management on backend
 
 ## Last Updated
-April 13, 2026 - Completed Phase 7: Code Quality Fixes (Security, React Hooks, Key Props)
+April 17, 2026 - Completed Phase 8: Automatic TruVant Image Branding Feature
 
 ## Future Enhancements (Optional)
+- [ ] P1: YouTube video player integration for testimonials section
 - [ ] Refactor large components into smaller sub-components
 - [ ] Implement httpOnly cookie authentication
 - [ ] Add "Compare Cars" feature
 - [ ] Implement car finance calculator
+- [ ] Wishlist/favorites functionality
